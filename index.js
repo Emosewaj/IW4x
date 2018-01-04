@@ -1,4 +1,7 @@
 const wr = require("web-request");
+const fs = require("fs");
+const Server = require("./server.js");
+
 const Discord = require("discord.js");
 const self = new Discord.Client({
     messageCacheMaxSize: 5,
@@ -44,11 +47,50 @@ function randomPresence() {
     setTimeout(function() {randomPresence()},1800000);
 }
 
+/**
+ * Adds a new server to the server list
+ * @param {string} ip 
+ * @param {string} name 
+ */
+function addServer(ip, name) {
+    let port = ip.split(":")[1];
+    ip = ip.split(":")[0];
+    if (self.servers.has(ip)) return;
+    self.servers.set(ip,new Server({ip, port, name}));
+    saveServers();
+}
+
+/**
+ * Deletes a server from the server list
+ * @param {string} ip 
+ */
+function deleteServer(ip) {
+    ip = ip.split(":")[0];
+    self.servers.delete(ip);
+    saveServers();
+}
+
+/**
+ * Save current server list
+ */
+function saveServers() {
+    let dataServers = [];
+    self.servers.forEach(server => dataServers.push(server));
+
+    fs.writeFile("./servers.json",JSON.stringify(dataServers,"",1),"utf8",(cb,err) => {if (err) {throw err}; console.log("Servers saved!")});
+}
+
 self.on("ready", () => {
+    self.servers = new Discord.Collection();
+    let tempServers = require("./servers.json");
+    for (i = 0; i < tempServers.length; i++) {
+        self.servers.set(tempServers[i].ip,new Server(tempServers[i]));
+    }
+
     self.memes = ["IW4x Support","Type your problem into #support!","IW4x v0.5.4","Call of Duty: Modern Warfare 2","Spacewar","Not a neural network!","Updated frequently!",
     "Tech Support","Indian Tech Support",":flag_au:","+set net_port <28960>","help cant create iw4play account 😦", "fatal error","👀","/dev/console","BotWarfare","24/7 Terminal",
     "zombie warfare 2 by santahunter","iMeme","#nsfw-meme-philosophy is my favourite channel","Rocket V2 was better","🚀🇻2","Running on german engineering!",
-    "Plutekno5xplayv2delta1revolution","with 300 ungrateful indian pirates","MW2:R", "closed source ☹️"]
+    "Plutekno5xplayv2delta1revolution","with 300 ungrateful indian pirates","MW2:R", "closed source ☹️", "Advanced Botwarfare"]
     self.user.setPresence({status: "online", afk: false});
     randomPresence();
     self.channels.get("292040520648228864").send({
@@ -184,11 +226,50 @@ self.on("message", m => {
                         .addField("Friendly Fire:",getFFType(server.scr_team_fftype),true)
                         .addField("\u200B",`[Click here to join!](http://${ip})`);
                         msg.edit({embed});
-                        return;
+                        return addServer(ip,server.sv_hostname.replace(/\^[0-9:;c]/g, ""));
                     }).catch(err => {
                         msg.edit(`There was an error trying to connect to ${ip}!\n${err}`);
                     });
                 });
+                return;
+            }
+            case "find": {
+                let query = m.content.split(" ");
+                query.shift();query.shift();
+                query = query.join(" ");
+                let result = self.servers.find(server => {if (server.name.toLowerCase().includes(query.toLowerCase())) {return true} else {return false}});
+                if (!result) {
+                    m.channel.send(`No servers found with the name ${query}!`);
+                } else {
+                    console.log(result);
+                    wr.get(`http://${result.ip}:${result.port}/info`,{timeout:3000}).then(response => {
+                        if (response.statusCode != 200) {
+                            msg.edit(`There was an error trying to connect to ${result.ip}!\nCode: ${response.statusCode}\nMessage: ${response.statusMessage}`);
+                            return;
+                        }
+                        let server = JSON.parse(response.content).status;
+                        let players = JSON.parse(response.content).players;
+                        if (!server.fs_game) server.fs_game = "None";
+                        let embed = new Discord.RichEmbed()
+                        .setAuthor(server.sv_hostname.replace(/\^[0-9:;c]/g, ""))
+                        .setDescription("**Serverinfo**")
+                        .addField("Map:",server.mapname,true)
+                        .addField("Gametype:",server.g_gametype,true)
+                        .addField("Players:",`${players.length}/${server.sv_maxclients}`,true)
+                        .addField("Mod:",server.fs_game.replace(/^mods\//g, ""),true)
+                        .addField("Security Level:",server.sv_securityLevel,true)
+                        .addField("Password Protected:",toBool(server.isPrivate),true)
+                        .addField("Hardcore Mode:",toBool(server.g_hardcore),true)
+                        .addField("KillCam:",toBool(server.scr_game_allowkillcam),true)
+                        .addField("Friendly Fire:",getFFType(server.scr_team_fftype),true)
+                        .addField("\u200B",`[Click here to join!](http://${result.ip}:${result.port})`);
+                        m.channel.send("Found a server!",{embed});
+                    }).catch(err => {
+                        m.channel.send(`A server was found but seems to be offline! Removing it from the server list!`);
+                        console.log(err);
+                        deleteServer(result.ip);
+                    });
+                }
                 return;
             }
         }
