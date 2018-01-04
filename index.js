@@ -48,7 +48,7 @@ self.on("ready", () => {
     self.memes = ["IW4x Support","Type your problem into #support!","IW4x v0.5.4","Call of Duty: Modern Warfare 2","Spacewar","Not a neural network!","Updated frequently!",
     "Tech Support","Indian Tech Support",":flag_au:","+set net_port <28960>","help cant create iw4play account 😦", "fatal error","👀","/dev/console","BotWarfare","24/7 Terminal",
     "zombie warfare 2 by santahunter","iMeme","#nsfw-meme-philosophy is my favourite channel","Rocket V2 was better","🚀🇻2","Running on german engineering!",
-    "Plutekno5xplayv2delta1revolution","with 300 ungrateful indian pirates","MW2:R"]
+    "Plutekno5xplayv2delta1revolution","with 300 ungrateful indian pirates","MW2:R", "closed source ☹️"]
     self.user.setPresence({status: "online", afk: false});
     randomPresence();
     self.channels.get("292040520648228864").send({
