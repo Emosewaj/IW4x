@@ -63,7 +63,7 @@ self.on("ready", () => {
 });
 
 self.on("message", m => {
-    if (m.author == self.user) return;
+    if (m.author == self.user || m.content.startsWith("!")) return;
 
     if (m.channel.type == "dm") return m.channel.send("Instead of DMing me, please use the IW4x <#275267435945263104> channel for support instead! Thank you!");
 
@@ -192,6 +192,34 @@ self.on("message", m => {
                 return;
             }
         }
+    }
+});
+
+self.on("message", m => {
+    if (m.content == "!help") {
+        return m.channel.send("```\n!help commands ..... List available commands\n!help topics ....... List available support topics\n```");
+    }
+
+    if (m.content == "!help commands") {
+        return m.channel.send({embed:new Discord.RichEmbed().setTitle("Commands")
+            .addField("@IW4x Bot#3006 uptime","Display for how long the bot has been online for.")
+            .addField("@IW4x Bot#3006 usage","Display the current RAM usage of the bot.")
+            .addField("@IW4x Bot#3006 ping <IP[:Port]>","Try pinging the specied IP and Port.\nIf no port is specified, 28960 will be chosen as the default.")
+            .setColor(m.guild.me.displayHexColor)
+        });
+    }
+
+    if (m.content == "!help topics") {
+        return m.channel.send({embed:new Discord.RichEmbed().setTitle("Support Topics")
+        .addField("Download MW2","=> [Link](https://goo.gl/3H4Wj7) <=")
+        .addField("Download IW4x","[Updater](https://goo.gl/arLPwH)\n[Zip Archive](https://goo.gl/b4BUhe)")
+        .addField("Download DLCs","=> [Link](https://goo.gl/KDFVh7) <=")
+        .addField("VAC Bans","You cannot be VAC banned for playing IW4x.")
+        .addField("No servers","Type \"no servers\" in <#275267435945263104> for more information.")
+        .addField("Few servers","Type \"few servers\" in <#275267435945263104> for more information.")
+        .addField("Fatal Error","Please see [this](https://iw4x.tumblr.com/post/166171864664/fatal-error) guide for more information.")
+        .setColor(m.guild.me.displayHexColor)
+        });
     }
 });
 
