@@ -1,9 +1,10 @@
 # IW4x
-IW4x is a Call of Duty: Modern Warfare 2 client. This is it's support bot.
+This is the support bot of the Call of Duty: Modern Warfare 2 Client IW4x.
 
 Written by Emosewaj, aka エモセワイ, aka E-Moses.
 Improved with feedback from the IW4x community.
 
+The [wiki](https://github.com/Jawesome99/IW4x/wiki) is a 1:1 copy of the [onsite wiki](https://iw4xcachep26muba.onion.rip/wiki), with the exception that this one can be edited by the community.  
 Current permission to edit the wiki:
 * Emosewaj
 * homura
