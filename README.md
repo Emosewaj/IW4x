@@ -10,7 +10,8 @@ Current permission to edit the wiki:
 * homura
 * Conkley
 
-Please send me a message on Discord if you would like to be able to edit the wiki: エモセワイ#6464  If you are trusted you may edit, otherwise please forward your suggestion to someone who can edit it.
+Please send me a message on Discord if you would like to be able to edit the wiki: エモセワイ#6464  
+If you are trusted you may edit, otherwise please forward your suggestion to someone who can edit it.
 
 ***
 
