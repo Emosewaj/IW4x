@@ -1,0 +1,72 @@
+{
+    "vac": {
+        "title":"Information regarding Valve Anti Cheat",
+        "description":"Playing IW4x will not result in a VAC ban on your Steam profile, regardless of it's (broken) integration.\n\nIW4x used to connect to Steam for your friends list, this feature is unfortunately broken at the current time.",
+        "thumbnail": {"url":"https://steamuserimages-a.akamaihd.net/ugc/838078703168971505/2E7938BBD22302DEADDEF274402014D886E44925/"}
+    },
+    "dlc": {
+        "title":"Download DLCs",
+        "description":"Use one of the following methods to download the IW4x DLCs:",
+        "thumbnail": {"url":"https://iw4xcachep26muba.onion.rip/img/dlc1.jpg"},
+        "fields": [
+            {"name":"With the installer:","value":"https://goo.gl/ZYrhgV"},
+            {"name":"From Google Drive:","value":"https://goo.gl/KDFVh7"},
+            {"name":"From the website:","value":"https://iw4xcachep26muba.onion.rip/dlc/"}
+        ]
+    },
+    "game": {
+        "title":"Download Modern Warfare 2",
+        "description":"Use one of the following methods to download a copy of the Modern Warfare 2 basegame:",
+        "thumbnail": {"url":"http://cdn.edgecast.steamstatic.com/steam/apps/10180/header.jpg"},
+        "fields": [
+            {"name":"From Steam:","value":"http://store.steampowered.com/app/10180/Call_of_Duty_Modern_Warfare_2/"},
+            {"name":"With the installer:","value":"https://goo.gl/ZYrhgV"},
+            {"name":"From Google Drive:","value":"https://goo.gl/3H4Wj7"},
+            {"name":"From WarZone:","value":"https://downloads.warzone.gg/IW4M/MW2.zip"}
+        ]
+    },
+    "iw4x": {
+        "title":"Install IW4x",
+        "description":"Please follow the guide below to install IW4x properly:",
+        "thumbnail": {"url":"https://media.discordapp.net/attachments/219514629703860235/404774150314393622/banner.png"},
+        "fields": [{"name":"Read the guide:","value":"https://iw4x.tumblr.com/post/161974206329/install-iw4x"}]
+    },
+    "servers": {
+        "title":"Few or no servers",
+        "description":"If you have trouble finding servers, please follow the steps below:",
+        "thumbnail": {"url":"https://www.bjorn3d.com/wp-content/uploads/2013/10/D-Link-DI-604.jpg"},
+        "fields": [
+            {"name":"Step 1:","value":"Click [here](https://goo.gl/oBxA3z) to download a zip containing the fix."},
+            {"name":"Step 2:","value":"Extract the zip archive into the root folder of your MW2 install (where IW4x.exe is). Say yes too all merging/replacing."},
+            {"name":"Step 3:","value":"Start IW4x via the \"START_ME.bat\" file that is now in your MW2 folder."},
+            {"name":"\u200B","value":"If this still hasn't fixed your issue, please message tech support."}
+        ]
+    },
+    "fatal": {
+        "title":"Fatal error issue",
+        "description":"If you encounter a fatal error on Windows 7, please try the steps in the following guide (might also help if you're on Windows 10):",
+        "thumbnail": {"url":"https://i.imgur.com/rCwPor6.png"},
+        "fields": [{"name":"Read the guide:","value":"https://iw4x.tumblr.com/post/166171864664/fatal-error"}]
+    },
+    "commands": {
+        "title":"Commands",
+        "fields": [
+            {"name":"@IW4x Bot#3006 uptime","value":"Display for how long the bot has been online for."},
+            {"name":"@IW4x Bot#3006 usage","value":"Display the current RAM usage of the bot."},
+            {"name":"@IW4x Bot#3006 ping <IP[:Port]>","value":"Try pinging the specied IP and Port.\nIf no port is specified, 28960 will be chosen as the default."},
+            {"name":"@IW4x Bot#3006 find <server name>","value":"Find an online IW4x server by name from the catalogue.\nOnly catalogued servers can be found.\nAdd a server to the catalogue by using the ping command on it."}
+        ]
+    },
+    "topics": {
+        "title":"Support Topics",
+        "fields": [
+            {"name":"Download MW2","value":"=> [Link](https://goo.gl/3H4Wj7) <="},
+            {"name":"Download IW4x","value":"[Updater](https://goo.gl/arLPwH)\n[Zip Archive](https://goo.gl/b4BUhe)"},
+            {"name":"Download DLCs","value":"=> [Link](https://goo.gl/KDFVh7) <="},
+            {"name":"VAC Bans","value":"You cannot be VAC banned for playing IW4x."},
+            {"name":"No/Few Servers","value":"Type \"few servers\" in <#275267435945263104> for more information."},
+            {"name":"Fatal Error","value":"Please see [this](https://iw4x.tumblr.com/post/166171864664/fatal-error) guide for more information."}
+        ]
+    },
+    "welcome":"__Welcome to IW4x!__\n\nWhile you wait until you can type in the server, please read the rules in the <#320545187589783562> channel!\n\nIf you need help installing IW4x, please view this guide: https://iw4x.tumblr.com/post/161974206329/install-iw4x\n\nIf you have a problem with the client, please go to <#275267435945263104> and ask your question, Tech Support and I will do our best to help you!\n\nIf you'd rather attempt to get support in your language, please use the <#316612499262930944> channel!\n\nPlease use the <#260768564489748480> channel for anything not related to IW4x (offtopic content), thank you! :smiley:\n\n\nCheck out our partnered project, MW2:R and Plutonium (Modern Warfare 3), too:\nMW2:R: https://discord.gg/wzD7eCM\nPluto: https://discord.gg/a6JM2Tv"
+}
