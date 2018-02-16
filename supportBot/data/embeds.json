@@ -36,7 +36,7 @@
         "description":"If you have trouble finding servers, please follow the steps below:",
         "thumbnail": {"url":"https://www.bjorn3d.com/wp-content/uploads/2013/10/D-Link-DI-604.jpg"},
         "fields": [
-            {"name":"Step 1:","value":"Click [here](https://goo.gl/oBxA3z) to download a zip containing the fix."},
+            {"name":"Step 1:","value":"Click [here](https://goo.gl/X8WBi4) to download a zip containing the fix."},
             {"name":"Step 2:","value":"Extract the zip archive into the root folder of your MW2 install (where IW4x.exe is). Say yes too all merging/replacing."},
             {"name":"Step 3:","value":"Start IW4x via the \"START_ME.bat\" file that is now in your MW2 folder."},
             {"name":"\u200B","value":"If this still hasn't fixed your issue, please message tech support."}
