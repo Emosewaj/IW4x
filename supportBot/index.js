@@ -308,8 +308,12 @@ self.on("message", m => {
 });
 
 self.on("guildMemberAdd", member => {
-	if (member.guild.id != "219514629703860235") return;
-	return member.user.send(self.embeds.welcome);
+    if (member.guild.id != "219514629703860235") return;
+	return member.user.send(self.embeds.welcome).then(() => {
+        self.channels.get("394080767396937731").send({embed:{title:"Member joined",fields:[{name:"Tag",value:member.user.tag},{name:"Received welcome message?",value:"Yes"}]}});
+    }).catch(e => {
+        self.channels.get("394080767396937731").send({embed:{title:"Member joined",fields:[{name:"Tag",value:member.user.tag},{name:"Received welcome message?",value:`No\n${e}`}]}});
+    });
 });
 
 process.on("uncaughtException", err => {
