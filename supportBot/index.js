@@ -7,7 +7,6 @@ const self = new Discord.Client({
     sync: false,
     disabledEvents: [
         "GUILD_SYNC",
-        "GUILD_MEMBER_ADD",
         "GUILD_MEMBER_REMOVE",
         "GUILD_MEMBER_UPDATE",
         "GUILD_MEMBERS_CHUNK",
@@ -309,7 +308,8 @@ self.on("message", m => {
 
 self.on("guildMemberAdd", member => {
     if (member.guild.id != "219514629703860235") return;
-	return member.user.send(self.embeds.welcome).then(() => {
+    console.log(`${member.user.tag} joined the server`);
+    return member.user.send(self.embeds.welcome).then(() => {
         self.channels.get("394080767396937731").send({embed:{title:"Member joined",fields:[{name:"Tag",value:member.user.tag},{name:"Received welcome message?",value:"Yes"}]}});
     }).catch(e => {
         self.channels.get("394080767396937731").send({embed:{title:"Member joined",fields:[{name:"Tag",value:member.user.tag},{name:"Received welcome message?",value:`No\n${e}`}]}});
