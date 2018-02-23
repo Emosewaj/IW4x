@@ -88,7 +88,8 @@ self.on("message", m => {
     let originalMessage = m.content.toLowerCase();
     let regexPattern = /(\d+)(.*?)(server)/;
     let result = originalMessage.match(regexPattern); //Should be a number ,followed by 0-inf whitespaces and "server"
-    let count = parseInt(result[0]);
+    let count = NaN;
+    if (result) count = parseInt(result[0]);
     m.content = originalMessage.split(" ");
     if (m.channel.type == "text" && self.config.allowedChannels.includes(m.channel.id) && !m.content[0].startsWith("!") && m.content[0] != "<@394079419964063744>") {
         if (m.content.includes("vac")) return m.channel.send({embed:self.embeds.vac})
