@@ -85,13 +85,17 @@ self.on("ready", () => {
 
 self.on("message", m => {
     if (m.author == self.user || m.channel.type == "dm") return;
-    m.content = m.content.toLowerCase().split(" ");
+    let originalMessage = m.content.toLowerCase();
+    let regexPattern = /(\d+)(.*?)(server)/;
+    let result = originalMessage.match(regexPattern); //Should be a number ,followed by 0-inf whitespaces and "server"
+    let count = parseInt(result[0]);
+    m.content = originalMessage.split(" ");
     if (m.channel.type == "text" && self.config.allowedChannels.includes(m.channel.id) && !m.content[0].startsWith("!") && m.content[0] != "<@394079419964063744>") {
         if (m.content.includes("vac")) return m.channel.send({embed:self.embeds.vac})
         if (parseKeywords(m.content,["download","get","free"]) && parseKeywords(m.content,["dlc","dlcs"])) return m.channel.send({embed:self.embeds.dlc});
         if (parseKeywords(m.content,["download","get","free","install"]) && (parseKeywords(m.content,["mw2","modern warfare","modern warfare 2"]))) return m.channel.send({embed:self.embeds.game});
         if (parseKeywords(m.content,["download","get","free","install"]) && parseKeywords(m.content,["iw4x","iw4"])) return m.channel.send({embed:self.embeds.iw4x});
-        if (parseKeywords(m.content,["no","all","find","any","few","low"]) && parseKeywords(m.content,["server","servers"])) return m.channel.send({embed:self.embeds.servers});
+        if ((parseKeywords(m.content,["no","all","find","any","few","low"]) && parseKeywords(m.content,["server","servers"])) || (count != NaN && count < self.config.minServers)) return m.channel.send({embed:self.embeds.servers});
         if (m.content.includes("fatal") && m.content.includes("error")) return m.channel.send({embed:self.embeds.fatal});
         if (m.content.includes("help") && !parseKeywords(m.content,["thank","thanks","thx"])) return m.channel.send("Please state your problem! If I cannot help, someone who can will come and reply to you shortly!");
     }
