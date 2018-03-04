@@ -80,7 +80,7 @@ function init() {
 
 self.on("ready", () => {
     randomPresence();
-    self.channels.get("292040520648228864").send({embed: new Discord.RichEmbed().setTitle(`IW4x Bot`).addField("Status",self.user.presence.status,true).addField("Version","v0.5.4",true).addField("Guilds",self.guilds.size,true).addField("RAM Usage",`${(process.memoryUsage().heapUsed/1024/1024).toFixed(2)} MB`,true).setColor(self.guilds.get("292040520648228864").me.displayHexColor).setThumbnail(self.user.displayAvatarURL)});   
+    self.channels.get("419968973287981061").send({embed: new Discord.RichEmbed().setTitle(`IW4x Bot`).addField("Status",self.user.presence.status,true).addField("Version","v0.5.4",true).addField("Guilds",self.guilds.size,true).addField("RAM Usage",`${(process.memoryUsage().heapUsed/1024/1024).toFixed(2)} MB`,true).setColor(self.guilds.get("292040520648228864").me.displayHexColor).setThumbnail(self.user.displayAvatarURL)});   
 });
 
 self.on("message", m => {
@@ -315,15 +315,15 @@ self.on("guildMemberAdd", member => {
     if (member.guild.id != "219514629703860235") return;
     console.log(`${member.user.tag} joined the server`);
     return member.user.send(self.embeds.welcome).then(() => {
-        self.channels.get("394080767396937731").send({embed:{title:"Member joined",fields:[{name:"Tag",value:member.user.tag},{name:"Received welcome message?",value:"Yes"}]}});
+        self.channels.get("357870372206673921").send({embed:{title:"New user joined IW4x",fields:[{name:"Username",value:member.user.username},{name:"Received welcome message?",value:"Yes"}],footer:{text:"This is a debug log. It is not related to this server."}}});
     }).catch(e => {
-        self.channels.get("394080767396937731").send({embed:{title:"Member joined",fields:[{name:"Tag",value:member.user.tag},{name:"Received welcome message?",value:`No\n${e}`}]}});
+        self.channels.get("357870372206673921").send({embed:{title:"New user joined IW4x",fields:[{name:"Username",value:member.user.username},{name:"Received welcome message?",value:`No\n${e}`}]}});
     });
 });
 
 process.on("uncaughtException", err => {
 	console.error(err.stack);
-    self.channels.get("292040520648228864").send(`<@211227683466641408> Crashed: ${err}\n at ${new Date().toString()}\nCheck console for more info.`);
+    self.channels.get("419968973287981061").send(`<@211227683466641408> Crashed: ${err}\n at ${new Date().toString()}\nCheck console for more info.`);
     console.error(err);
 });
 
