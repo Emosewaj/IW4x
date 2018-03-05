@@ -36,7 +36,7 @@
         "description":"If you have trouble finding servers, please follow the steps below:",
         "thumbnail": {"url":"https://www.bjorn3d.com/wp-content/uploads/2013/10/D-Link-DI-604.jpg"},
         "fields": [
-            {"name":"Step 1:","value":"Click [here](https://goo.gl/X8WBi4) to download a zip containing the fix."},
+            {"name":"Step 1:","value":"Click [here](https://goo.gl/35FNo4) to download a zip containing the fix."},
             {"name":"Step 2:","value":"Extract the zip archive into the root folder of your MW2 install (where IW4x.exe is). Say yes too all merging/replacing."},
             {"name":"Step 3:","value":"Start IW4x via the \"START_ME.bat\" file that is now in your MW2 folder."},
             {"name":"\u200B","value":"If this still hasn't fixed your issue, please message tech support."}
@@ -51,8 +51,7 @@
     "commands": {
         "title":"Commands",
         "fields": [
-            {"name":"@IW4x Bot#3006 uptime","value":"Display for how long the bot has been online for."},
-            {"name":"@IW4x Bot#3006 usage","value":"Display the current RAM usage of the bot."},
+            {"name":"@IW4x Bot#3006 info","value":"Display technical information about the bot."},
             {"name":"@IW4x Bot#3006 ping <IP[:Port]>","value":"Try pinging the specied IP and Port.\nIf no port is specified, 28960 will be chosen as the default."},
             {"name":"@IW4x Bot#3006 find <server name>","value":"Find an online IW4x server by name from the catalogue.\nOnly catalogued servers can be found.\nAdd a server to the catalogue by using the ping command on it."}
         ]
