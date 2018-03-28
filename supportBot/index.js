@@ -69,6 +69,7 @@ function parseKeywords(text,keywords) {
 function init() {
     self.config = require("./data/config.json");
     self.embeds = require("./data/embeds.json");
+    self.joins = require("./data/joins.json");self.days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];self.today = new Date().getUTCDay();
     self.servers = new Discord.Collection();
     let servers = require("./data/servers.json");
     for (let i in servers) {
@@ -113,6 +114,28 @@ self.on("message", m => {
             case "restart": {
                 if (m.author.id != "211227683466641408") return m.channel.send({embed: {description:"Access denied."}});
                 return m.channel.send({embed: {description:"Restarting..."}}).then(() => process.exit(1));
+            }
+            case "joins": {
+                let today = new Date().getUTCDay();
+                if (today != self.today) {
+                    self.joins[today-1] = 0;
+                    self.today = today;
+                }
+                let toSend = "";
+                for (let i in self.joins) {
+                    if (i < today-1) {
+                        toSend += `This ${self.days[i]}: ${self.joins[i]}\n`;
+                    } else if (i == today-1) {
+                        toSend += `Today: ${self.joins[i]}\n`;
+                    } else if (i > today-1) {
+                        toSend += `Last ${self.days[i]}: ${self.joins[i]}\n`;
+                    }
+                }
+                return m.channel.send({
+                    embed: new Discord.RichEmbed()
+                    .setTitle("Members joined in the last week")
+                    .setDescription(toSend)
+                });
             }
             case "ping": {
                 m.reply("attempting to connect...").then(msg => {
@@ -299,6 +322,16 @@ self.on("message", m => {
                 });
                 break;
             }
+            case "lmgtfy":
+            case "google": {
+                return m.channel.send({
+                    embed: new Discord.RichEmbed()
+                    .setTitle("Googling isn't hard!")
+                    .setDescription(`So **l**et **m**e **g**oogle **t**hat **f**or **y**ou:\n\n[Click here!](http://lmgtfy.com/?q=${m.content.slice(2).join("+")})`)
+                    .setThumbnail("http://lmgtfy.com/assets/logo-color-small-70dbef413f591a3fdfcfac7b273791039c8fd2a5329e97c4bfd8188f69f0da34.png")
+                    .setColor("WHITE")
+                });
+            }
         }
     }
 
@@ -313,7 +346,12 @@ self.on("message", m => {
 
 self.on("guildMemberAdd", member => {
     if (member.guild.id != "219514629703860235") return;
-    console.log(`${member.user.tag} joined the server`);
+    if (new Date().getUTCDay != self.today) {
+        self.today = new Date().getUTCDay();
+        self.joins[new Date().getUTCDay()-1] = 0;
+    }
+    self.joins[new Date().getUTCDay()-1]++;
+    fs.writeFileSync("./data/joins.json",JSON.stringify(self.joins,"",1),"utf8");
     return member.user.send(self.embeds.welcome).then(() => {
         self.channels.get("357870372206673921").send({embed:{title:"New user joined IW4x",fields:[{name:"Username",value:member.user.username},{name:"Received welcome message?",value:"Yes"}],footer:{text:"This is a debug log. It is not related to this server."}}});
     }).catch(e => {

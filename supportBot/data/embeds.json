@@ -9,7 +9,7 @@
         "description":"Use one of the following methods to download the IW4x DLCs:",
         "thumbnail": {"url":"https://iw4xcachep26muba.onion.rip/img/dlc1.jpg"},
         "fields": [
-            {"name":"With the installer:","value":"https://goo.gl/ZYrhgV"},
+            {"name":"With the installer:","value":"https://goo.gl/yyyMLq"},
             {"name":"From Google Drive:","value":"https://goo.gl/KDFVh7"},
             {"name":"From the website:","value":"https://iw4xcachep26muba.onion.rip/dlc/"}
         ]
@@ -20,7 +20,7 @@
         "thumbnail": {"url":"http://cdn.edgecast.steamstatic.com/steam/apps/10180/header.jpg"},
         "fields": [
             {"name":"From Steam:","value":"http://store.steampowered.com/app/10180/Call_of_Duty_Modern_Warfare_2/"},
-            {"name":"With the installer:","value":"https://goo.gl/ZYrhgV"},
+            {"name":"With the installer:","value":"https://goo.gl/yyyMLq"},
             {"name":"From Google Drive:","value":"https://goo.gl/3H4Wj7"},
             {"name":"From WarZone:","value":"https://downloads.warzone.gg/IW4M/MW2.zip"}
         ]
@@ -52,6 +52,7 @@
         "title":"Commands",
         "fields": [
             {"name":"@IW4x Bot#3006 info","value":"Display technical information about the bot."},
+            {"name":"@IW4x Bot#3006 joins","value":"Show how many members joined within the last week for each day."}
             {"name":"@IW4x Bot#3006 ping <IP[:Port]>","value":"Try pinging the specied IP and Port.\nIf no port is specified, 28960 will be chosen as the default."},
             {"name":"@IW4x Bot#3006 find <server name>","value":"Find an online IW4x server by name from the catalogue.\nOnly catalogued servers can be found.\nAdd a server to the catalogue by using the ping command on it."}
         ]
