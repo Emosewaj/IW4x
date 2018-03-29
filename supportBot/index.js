@@ -346,7 +346,7 @@ self.on("message", m => {
 
 self.on("guildMemberAdd", member => {
     if (member.guild.id != "219514629703860235") return;
-    if (new Date().getUTCDay != self.today) {
+    if (new Date().getUTCDay() != self.today) {
         self.today = new Date().getUTCDay();
         self.joins[new Date().getUTCDay()-1] = 0;
     }
