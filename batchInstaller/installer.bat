@@ -4,11 +4,17 @@ rem http://downloads.warzone.gg/IW4M/iw4x_files.zip
 rem http://downloads.warzone.gg/IW4M/iw4x_dlc.zip
 rem thank god for WarZone <3
 set workdir=%cd%
-set installMW2=Yes
+
+if not exist "%workdir%/installerData/" goto errorNoDirectory
+
+if exist "%workdir%/binkw32.dll" if exist "%workdir%/mss32.dll" if exist "%workdir%/main/" (
+    set installMW2=No
+)
+if not "%installMW2%"=="No" (
+    set installMW2=Yes
+)
 set installIW4x=Yes
 set installDLC=Yes
-
-if not exist "%workdir%/installerData" goto errorNoDirectory
 
 :print
 set "input="
@@ -65,10 +71,18 @@ echo.
 echo By continuing, you confirm that this installer is going to install the files into the correct folder.
 echo.
 pause
+cls
+echo.
+echo IF YOU ARE ALREADY HAVE MW2 INSTALLED SOMEWHERE, AND THIS INSTALLER IS NOT WHERE THAT MW2 INSTALL IS, THE FOLDER IS WRONG!
+echo IF THE FOLDER IS WRONG, PLEASE MOVE THE INSTALLER TO THE CORRECT FOLDER!
+echo.
+pause
 
-if not exist "%workdir%/installerData/temp" (
-    mkdir "%workdir%/installerData/temp"
+if exist "%workdir%/installerData/temp" (
+    rmdir /S /Q "%workdir%/installerData/temp"
 )
+
+mkdir "%workdir%/installerData/temp"
 
 if "%installMW2%"=="Yes" (
     goto installMW2
