@@ -21,6 +21,7 @@ Improved with feedback from the IW4x community.
 
 ***
 
-IW4x Batch installer  
+IW4x GUI and Batch installer  
 Written by Emosewaj, improved with bug reports from the community.  
-Uses 7zip and wget.
+GUI uses .NET 4.6.1, written in C#  
+Batch installer uses 7zip and wget.
