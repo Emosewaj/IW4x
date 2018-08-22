@@ -52,7 +52,7 @@
         "title":"Commands",
         "fields": [
             {"name":"@IW4x Bot#3006 info","value":"Display technical information about the bot."},
-            {"name":"@IW4x Bot#3006 joins","value":"Show how many members joined within the last week for each day."}
+            {"name":"@IW4x Bot#3006 joins","value":"Show how many members joined within the last week for each day."},
             {"name":"@IW4x Bot#3006 ping <IP[:Port]>","value":"Try pinging the specied IP and Port.\nIf no port is specified, 28960 will be chosen as the default."},
             {"name":"@IW4x Bot#3006 find <server name>","value":"Find an online IW4x server by name from the catalogue.\nOnly catalogued servers can be found.\nAdd a server to the catalogue by using the ping command on it."}
         ]
@@ -68,5 +68,10 @@
             {"name":"Fatal Error","value":"Please see [this](https://iw4x.tumblr.com/post/166171864664/fatal-error) guide for more information."}
         ]
     },
-    "welcome":"__Welcome to IW4x!__\n\nWhile you wait until you can type in the server, please read the rules in the <#320545187589783562> channel!\n\nIf you need help installing IW4x, please view this guide: https://iw4x.tumblr.com/post/161974206329/install-iw4x\n\nIf you have a problem with the client, please go to <#275267435945263104> and ask your question, Tech Support and I will do our best to help you!\n\nIf you'd rather attempt to get support in your language, please use the <#316612499262930944> channel!\n\nPlease use the <#260768564489748480> channel for anything not related to IW4x (offtopic content), thank you! :smiley:\n\n\nCheck out our partnered project, Plutonium (Modern Warfare 3), too:\nPluto: https://discord.gg/a6JM2Tv"
+    "friends": {
+        "title":"Friend Integration",
+        "description":"IW4x used to have a functioning Friends integration, it would read your friendlist on Steam and show whenever someone would be playing.\n\nAs of an update from Steam, this is no longer possible, the integration broke and friends can no longer be added."
+    },
+    "welcome":"__Welcome to IW4x!__\n\nWhile you wait until you can type in the server, please read the rules in the <#320545187589783562> channel!\n\nIf you need help installing IW4x, please view this guide: https://iw4x.tumblr.com/post/161974206329/install-iw4x\n\nIf you have a problem with the client, please go to <#275267435945263104> and ask your question, Tech Support and I will do our best to help you!\n\nIf you'd rather attempt to get support in your language, please use the <#316612499262930944> channel!\n\nPlease use the <#260768564489748480> channel for anything not related to IW4x (offtopic content), thank you! :smiley:\n\n\nCheck out our partnered project, Plutonium (Modern Warfare 3), too:\nPluto: https://discord.gg/a6JM2Tv",
+    "muted":"__Welcome to IW4x!__\n\nIt appears you've been previously muted! To prevent people from circumventing their mutes through rejoining, you have been muted again! If you believe this is an error, please contact staff."
 }

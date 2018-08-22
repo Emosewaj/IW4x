@@ -1,5 +1,6 @@
 {
-    "allowedChannels":["275267435945263104","394080767396937731","317323317638070272"],
+    "allowedChannels":["275267435945263104","394080767396937731","317323317638070272","419968973287981061","316612499262930944"],
     "token":"",
-    "minServers" : 125
+    "minServers" : 120,
+    "keywords": ["zw","zw2","zombiewarfare","zombiewarfare2","zombie warfare","zombie warfare 2"]
 }

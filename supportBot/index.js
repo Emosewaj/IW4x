@@ -1,4 +1,4 @@
-const wr = require("web-request"), fs = require("fs"), Server = require("./module/server.js"), Discord = require("discord.js");
+const wr = require("web-request"), fs = require("fs"), Server = require("./module/server.js"), /*sql = require("sqlite3"),*/ Discord = require("discord.js");
 const self = new Discord.Client({
     messageCacheMaxSize: 5,
     messageCacheLifetime: 30,
@@ -6,15 +6,9 @@ const self = new Discord.Client({
     disableEveryone: true,
     sync: false,
     disabledEvents: [
-        "GUILD_SYNC",
-        "GUILD_MEMBER_REMOVE",
-        "GUILD_MEMBER_UPDATE",
-        "GUILD_MEMBERS_CHUNK",
         "GUILD_ROLE_CREATE",
         "GUILD_ROLE_DELETE",
         "GUILD_ROLE_UPDATE",
-        "GUILD_BAN_ADD",
-        "GUILD_BAN_REMOVE",
         "CHANNEL_PINS_UPDATE",
         "MESSAGE_DELETE",
         "MESSAGE_UPDATE",
@@ -22,10 +16,6 @@ const self = new Discord.Client({
         "MESSAGE_REACTION_ADD",
         "MESSAGE_REACTION_REMOVE",
         "MESSAGE_REACTION_REMOVE_ALL",
-        "USER_UPDATE",
-        "USER_NOTE_UPDATE",
-        "USER_SETTINGS_UPDATE",
-        "PRESENCE_UPDATE",
         "VOICE_STATE_UPDATE",
         "TYPING_START",
         "VOICE_SERVER_UPDATE",
@@ -40,11 +30,11 @@ function randomPresence() {
     setTimeout(function() {randomPresence()},1800000);
 }
 
-function addServer(ip, name) {
+function addServer(ip) {
     let port = ip.split(":")[1];
     ip = ip.split(":")[0];
     if (self.servers.has(ip)) return;
-    self.servers.set(`${ip}:${port}`,new Server({ip, port, name}));
+    self.servers.set(`${ip}:${port}`,new Server({ip, port}));
     saveServers();
 }
 
@@ -68,6 +58,7 @@ function parseKeywords(text,keywords) {
 
 function init() {
     self.config = require("./data/config.json");
+    self.mutes = require("./data/mutes.json");
     self.embeds = require("./data/embeds.json");
     self.joins = require("./data/joins.json");self.days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];self.today = new Date().getUTCDay();
     self.servers = new Discord.Collection();
@@ -81,6 +72,7 @@ function init() {
 
 self.on("ready", () => {
     randomPresence();
+    if (self.mutes.length == 0) fetchMutes();
     self.channels.get("419968973287981061").send({embed: new Discord.RichEmbed().setTitle(`IW4x Bot`).addField("Status",self.user.presence.status,true).addField("Version","v0.5.4",true).addField("Guilds",self.guilds.size,true).addField("RAM Usage",`${(process.memoryUsage().heapUsed/1024/1024).toFixed(2)} MB`,true).setColor(self.guilds.get("292040520648228864").me.displayHexColor).setThumbnail(self.user.displayAvatarURL)});   
 });
 
@@ -91,6 +83,47 @@ self.on("message", m => {
     let result = originalMessage.match(regexPattern); //Should be a number ,followed by 0-inf whitespaces and "server"
     let count = NaN;
     if (result) count = parseInt(result[0]);
+
+    if (m.channel.permissionsFor(self.user).has("MANAGE_MESSAGES")) {
+        for (let i in self.config.keywords) {
+            if (m.content.includes(self.config.keywords[i])) return m.delete();
+        }
+    }
+
+    if (m.mentions.members.size > 5) m.member.kick("Mention spammer").then(member => m.channel.send(`Don't spam you cuck, kicked. Bye bye ${member.user.username}!`));
+
+    if (m.content.startsWith("!")) {
+        if (m.content.startsWith("!request")) {
+            return self.users.get("211227683466641408").send(`Request from ${m.author.tag}: ${m.content.split(" ").slice(1).join(" ")}`).then(() => {
+                return m.channel.send("Your request was submitted!");
+            });
+        }
+    }
+
+    if (m.content.startsWith("!") && (m.member.roles.has("389196122645856266") || m.member.roles.has("277148294705053696"))) {
+        if (m.content.startsWith("!kick")) {
+            if (m.mentions.members.first()) {
+                m.mentions.members.first().kick("Kicked by staff").then(member => m.channel.send(`Kicked ${member.user.tag}!`), err => m.channel.send(`Failed to kick ${m.mentions.users.first().tag}:\n${err}`));
+            }
+        } else if (m.content.startsWith("!ban")) {
+            if (m.mentions.members.first()){
+                m.mentions.members.first().ban("Banned by staff").then(member => m.channel.send(`Banned ${member.user.tag}!`), err => m.channel.send(`Failed to ban ${m.mentions.users.first().tag}:\n${err}`))
+            } else if (!isNaN(parseInt(m.content.split(" ")[1]))) {
+                m.guild.ban(m.content.split(" ")[1],{reason:"Banned by staff"}).then(member => m.channel.send(`Banned <@${m.content.split(" ")[1]}!`), err => m.channel.send(`Failed to ban user:\n${err}`));
+            }
+        } else if (m.content.startsWith("!unban")) {
+            if (!isNaN(parseInt(m.content.split(" ")[1]))) {
+                m.guild.unban(m.content.split(" ")[1],"Unbanned by staff").then(user => m.channel.send(`Unbanned ${user.tag}!`), err => m.channel.send(`Failed to unban user:\n${err}`));
+            }
+        } else if (m.content.startsWith("!presence")) {
+            return self.user.setActivity(m.content.split(" ").slice(2).join(" "),{type: m.content.split(" ")[1].toUpperCase()}).then(() => {
+                return m.channel.send(`Now ${m.content.split(" ")[1].toLowerCase()} ${m.content.split(" ").slice(2).join(" ")}!`);
+            }, err => {
+                return m.channel.send(`Oops, that didn't work: ${err}`);
+            });
+        }
+    }
+
     m.content = originalMessage.split(" ");
     if (m.channel.type == "text" && self.config.allowedChannels.includes(m.channel.id) && !m.content[0].startsWith("!") && m.content[0] != "<@394079419964063744>") {
         if (m.content.includes("vac")) return m.channel.send({embed:self.embeds.vac})
@@ -99,6 +132,7 @@ self.on("message", m => {
         if (parseKeywords(m.content,["download","get","free","install"]) && parseKeywords(m.content,["iw4x","iw4"])) return m.channel.send({embed:self.embeds.iw4x});
         if ((parseKeywords(m.content,["no","all","find","any","few","low"]) && parseKeywords(m.content,["server","servers"])) || (count != NaN && count < self.config.minServers)) return m.channel.send({embed:self.embeds.servers});
         if (m.content.includes("fatal") && m.content.includes("error")) return m.channel.send({embed:self.embeds.fatal});
+        if (parseKeywords(m.content,["friend","friends"])) return m.channel.send({embed:self.embeds.friends});
         if (m.content.includes("help") && !parseKeywords(m.content,["thank","thanks","thx"])) return m.channel.send("Please state your problem! If I cannot help, someone who can will come and reply to you shortly!");
     }
 
@@ -163,7 +197,7 @@ self.on("message", m => {
                         .addField("Friendly Fire:",getFFType(server.scr_team_fftype),true)
                         .addField("\u200B",`[Click here to join!](http://${ip})`);
                         msg.edit({embed});
-                        return addServer(ip,server.sv_hostname.replace(/\^[0-9:;c]/g, ""));
+                        return addServer(ip);
                     }).catch(err => {
                         return msg.edit(`There was an error trying to connect to ${ip}!\n${err}`);
                     });
@@ -290,7 +324,7 @@ self.on("message", m => {
                                 }
                             } else {
                                 online++;
-                                addServer(ip,JSON.parse(response.content).status.sv_hostname.replace(/\^[0-9:;c]/g, ""));
+                                addServer(ip);
                                 if (servers.length == 0) {
                                     msg.edit(`All servers checked! Results:\n${online} servers online\n${offline} servers offline and deleted`);
                                     return;
@@ -345,6 +379,8 @@ self.on("message", m => {
 });
 
 self.on("guildMemberAdd", member => {
+    if (member.user.username.toLowerCase().includes("pop")) return member.kick();
+
     if (member.guild.id != "219514629703860235") return;
     if (new Date().getUTCDay() != self.today) {
         self.today = new Date().getUTCDay();
@@ -352,11 +388,34 @@ self.on("guildMemberAdd", member => {
     }
     self.joins[new Date().getUTCDay()-1]++;
     fs.writeFileSync("./data/joins.json",JSON.stringify(self.joins,"",1),"utf8");
-    return member.user.send(self.embeds.welcome).then(() => {
-        self.channels.get("357870372206673921").send({embed:{title:"New user joined IW4x",fields:[{name:"Username",value:member.user.username},{name:"Received welcome message?",value:"Yes"}],footer:{text:"This is a debug log. It is not related to this server."}}});
-    }).catch(e => {
-        self.channels.get("357870372206673921").send({embed:{title:"New user joined IW4x",fields:[{name:"Username",value:member.user.username},{name:"Received welcome message?",value:`No\n${e}`}]}});
-    });
+    if (self.mutes.includes(member.id)) {
+        member.addRole("269959459349069824","Was previously muted");
+        return member.user.send(self.embeds.muted).then(() => {
+            self.channels.get("357870372206673921").send({embed:{title:"New user joined IW4x",fields:[{name:"Username",value:member.user.username},{name:"Received welcome message?",value:"Was previously muted"}],footer:{text:"This is a debug log. It is not related to this server."}}});
+            self.channels.get("442888565177712640").send({embed:{title:"User joined",fields:[{name:"Status",value:"Muted\nMessage Received"},{name:"Tag",value:member.user.tag},{name:"ID",value:member.id}]}})
+        }).catch(e => {
+            self.channels.get("357870372206673921").send({embed:{title:"New user joined IW4x",fields:[{name:"Username",value:member.user.username},{name:"Received welcome message?",value:"Was previously muted"}],footer:{text:"This is a debug log. It is not related to this server."}}});
+            self.channels.get("442888565177712640").send({embed:{title:"User joined",fields:[{name:"Status",value:"Muted\nMessage Not Received"},{name:"Tag",value:member.user.tag},{name:"ID",value:member.id}]}})
+        });
+    } else {
+        return member.user.send(self.embeds.welcome).then(() => {
+            self.channels.get("357870372206673921").send({embed:{title:"New user joined IW4x",fields:[{name:"Username",value:member.user.username},{name:"Received welcome message?",value:"Yes"}],footer:{text:"This is a debug log. It is not related to this server."}}});
+            self.channels.get("442888565177712640").send({embed:{title:"User joined",fields:[{name:"Status",value:"Not Muted\nMessage Received"},{name:"Tag",value:member.user.tag},{name:"ID",value:member.id}]}})
+        }).catch(e => {
+            self.channels.get("357870372206673921").send({embed:{title:"New user joined IW4x",fields:[{name:"Username",value:member.user.username},{name:"Received welcome message?",value:`No\n${e}`}]}});
+            self.channels.get("442888565177712640").send({embed:{title:"User joined",fields:[{name:"Status",value:"Not Muted\nMessage Not Received"},{name:"Tag",value:member.user.tag},{name:"ID",value:member.id}]}})
+        });
+    }
+});
+
+self.on("guildMemberUpdate",(oM,nM) => {
+    if (nM.roles.has("269959459349069824") && !oM.roles.has("269959459349069824") && !self.mutes.includes(nM.id)) { // if they were muted
+        self.mutes.push(nM.id);
+        return fs.writeFileSync("./data/mutes.json",JSON.stringify(self.mutes,"",1),"utf8");
+    } else if (!nM.roles.has("269959459349069824") && oM.roles.has("269959459349069824")) { // if they were unmuted
+        self.mutes.splice(self.mutes.indexOf(nM.id),1);
+        return fs.writeFileSync("./data/mutes.json",JSON.stringify(self.mutes,"",1),"utf8");
+    } else return;
 });
 
 process.on("uncaughtException", err => {
@@ -401,6 +460,13 @@ function loadingBar(total, current) {
         return {bool:true,percentage:percentage.toFixed(2),bar: bar.join("")};
     }
     return {bool:false,percentage: null,bar: null};
+}
+
+function fetchMutes() {
+    self.guilds.get("219514629703860235").members.forEach(m => {
+        if (m.roles.has("269959459349069824")) return self.mutes.push(m.id);
+    });
+    setTimeout(() => {fs.writeFileSync("./data/mutes.json",JSON.stringify(self.mutes,"",1),"utf8");},10000);
 }
 
 init();
