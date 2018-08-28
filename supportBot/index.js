@@ -24,7 +24,15 @@ const self = new Discord.Client({
     ]
 });
 
+function resetActivity() {
+    setTimeout(function() {
+        self.customActivity = false;
+        randomPresence();
+    },7200000);
+}
+
 function randomPresence() {
+    if (self.customActivity) return;
     let num = Math.floor(Math.random()*(self.memes.length+1));
     self.user.setActivity(self.memes[num]);
     setTimeout(function() {randomPresence()},1800000);
@@ -71,6 +79,7 @@ function init() {
 }
 
 self.on("ready", () => {
+    self.customActivity = false;
     randomPresence();
     if (self.mutes.length == 0) fetchMutes();
     self.channels.get("419968973287981061").send({embed: new Discord.RichEmbed().setTitle(`IW4x Bot`).addField("Status",self.user.presence.status,true).addField("Version","v0.5.4",true).addField("Guilds",self.guilds.size,true).addField("RAM Usage",`${(process.memoryUsage().heapUsed/1024/1024).toFixed(2)} MB`,true).setColor(self.guilds.get("292040520648228864").me.displayHexColor).setThumbnail(self.user.displayAvatarURL)});   
@@ -100,7 +109,7 @@ self.on("message", m => {
         }
     }
 
-    if (m.content.startsWith("!") && (m.member.roles.has("389196122645856266") || m.member.roles.has("277148294705053696"))) {
+    if (m.content.startsWith("!") && (m.author.id == "211227683466641408" || m.member.roles.has("389196122645856266") || m.member.roles.has("277148294705053696") || m.member.roles.has("276772587629969408") || m.member.roles.has("265852393743319042") || m.member.roles.has("244553794380234752"))) {
         if (m.content.startsWith("!kick")) {
             if (m.mentions.members.first()) {
                 m.mentions.members.first().kick("Kicked by staff").then(member => m.channel.send(`Kicked ${member.user.tag}!`), err => m.channel.send(`Failed to kick ${m.mentions.users.first().tag}:\n${err}`));
@@ -117,6 +126,8 @@ self.on("message", m => {
             }
         } else if (m.content.startsWith("!presence")) {
             return self.user.setActivity(m.content.split(" ").slice(2).join(" "),{type: m.content.split(" ")[1].toUpperCase()}).then(() => {
+                self.customActivity = true;
+                resetActivity();
                 return m.channel.send(`Now ${m.content.split(" ")[1].toLowerCase()} ${m.content.split(" ").slice(2).join(" ")}!`);
             }, err => {
                 return m.channel.send(`Oops, that didn't work: ${err}`);
@@ -365,6 +376,137 @@ self.on("message", m => {
                     .setThumbnail("http://lmgtfy.com/assets/logo-color-small-70dbef413f591a3fdfcfac7b273791039c8fd2a5329e97c4bfd8188f69f0da34.png")
                     .setColor("WHITE")
                 });
+                break;
+            }
+            case "iw4madmin": {
+                m.channel.send("Attempting to fetch data...").then(msg => {
+                    wr.get("http://api.raidmax.org:5000/instance/", {timeout:3000}).then(response => {
+                        if (response.statusCode != 200) {
+                            return msg.edit(msg.content+`\nThere was an error trying to fetch data!\n\nCode: ${response.statusCode}\nMessage: ${response.statusMessage}`);
+                        }
+                        msg.edit("Parsing data...");
+                        let data = JSON.parse(response.content);
+                        console.log(data);
+                        let versions = new Discord.Collection();
+                        data.forEach(instance => {
+                            if (versions.has(instance.version.toString())) {
+                                versions.set(instance.version.toString(), {version: instance.version, count: (versions.get(instance.version.toString()).count+1)});
+                            } else {
+                                versions.set(instance.version.toString(), {version: instance.version, count: 1});
+                            }
+                        });
+                        let versionString = "";
+                        versions.forEach(version => {
+                            versionString += `\n${version.version}: ${version.count} - ${(version.count/data.length*100).toFixed(2)}%`;
+                        });
+
+                        let serverCount = 0;
+                        let serverGames = new Discord.Collection();
+                        let playerCount = 0;
+                        let playerGames = new Discord.Collection();
+                        let gamemodes = new Discord.Collection();
+                        let maps = new Discord.Collection();
+
+                        data.forEach(instance => {
+                            instance.servers.forEach(server => {
+                                serverCount++;
+                                if (serverGames.has(server.game)) {
+                                    serverGames.set(server.game, {game: server.game, count: (serverGames.get(server.game).count+1)});
+                                } else {
+                                    serverGames.set(server.game, {game: server.game, count: 1});
+                                }
+
+                                if (gamemodes.has(server.gametype)) {
+                                    gamemodes.set(server.gametype, {
+                                        gametype: server.gametype, 
+                                        count: (gamemodes.get(server.gametype).count+1),
+                                        players: (gamemodes.get(server.gametype).players+server.clientnum)
+                                    });
+                                } else {
+                                    gamemodes.set(server.gametype, {
+                                        gametype: server.gametype, 
+                                        count: 1,
+                                        players: server.clientnum
+                                    });
+                                }
+
+                                if (maps.has(server.map)) {
+                                    maps.set(server.map, {
+                                        mapname: server.map,
+                                        count: (maps.get(server.map).count+1),
+                                        players: (maps.get(server.map).players+server.clientnum)
+                                    });
+                                } else {
+                                    maps.set(server.map, {
+                                        mapname: server.map,
+                                        count: 1,
+                                        players: server.clientnum
+                                    });
+                                }
+
+                                if (server.clientnum > 0) {
+                                    playerCount += server.clientnum;
+                                    if (playerGames.has(server.game)) {
+                                        playerGames.set(server.game, {game: server.game, count: (playerGames.get(server.game).count += server.clientnum)});
+                                    } else {
+                                        playerGames.set(server.game, {game: server.game, count: server.clientnum});
+                                    }
+                                }
+                            });
+                        });
+
+
+                        let serverString = "";
+                        serverGames.forEach(server => {
+                            serverString += `\n${server.game}: ${server.count} - ${(server.count/serverCount*100).toFixed(2)}%`;
+                        });
+
+                        let playerString = "";
+                        playerGames.forEach(game => {
+                            playerString += `\n${game.game}: ${game.count} - ${(game.count/playerCount*100).toFixed(2)}%`;
+                        });
+
+                        let gamemodeString = "";
+                        let gamemodeStatsString = "";
+                        gamemodes.forEach(gamemode => {
+                            gamemodeString += `\n${gamemode.gametype}: ${gamemode.count} - ${(gamemode.count/serverCount*100).toFixed(2)}%`;
+                            gamemodeStatsString += `\n${gamemode.gametype}: ${gamemode.players} - ${(gamemode.players/playerCount*100).toFixed(2)}%`;
+                        });
+
+                        let topFiveMaps = [null, null, null, null, null];
+                        for (let i = 0; i < 5; i++) {
+                            maps.forEach(map => {
+                                if (topFiveMaps[i] == null || topFiveMaps[i].players < map.players) {
+                                    topFiveMaps[i] = map;
+                                    maps.delete(map.mapname);
+                                }
+                            });
+                        }
+
+                        let mapString = "";
+                        let mapStatsString = "";
+                        topFiveMaps.forEach(map => {
+                            mapString += `\n${map.mapname}: ${map.count} - ${(map.count/serverCount*100).toFixed(2)}%`;
+                            mapStatsString += `\n${map.mapname}: ${map.players} - ${(map.players/playerCount*100).toFixed(2)}%`;
+                        });
+
+
+                        let embed = new Discord.RichEmbed().setTitle("IW4MAdmin Stats")
+                        .addField("API Info", `Instances: ${data.length}\n\nInstance Versions:${versionString}`, true)
+                        .addField("\u200B", `Servers: ${serverCount}\n\nServer Games:${serverString}`, true)
+                        .addField("\u200B", `Players: ${playerCount}\n\nPlayer Games:${playerString}`, true)
+                        .addField("\u200B", `Server Gametypes: ${gamemodeString}`, true)
+                        .addField("\u200B", `Gametype Players: ${gamemodeStatsString}`, true)
+                        .addBlankField(true)
+                        .addField("\u200B", `Server Maps: ${mapString}`, true)
+                        .addField("\u200B", `Map Players: ${mapStatsString}`, true)
+                        .addBlankField(true)
+                        .addField("\u200B", `Info requested by ${m.author.tag}`)
+                        .setFooter("Only the Top 5 populated maps are displayed.")
+                        .setTimestamp();
+                        return msg.edit("Done!", {embed});
+                    });
+                })
             }
         }
     }
@@ -391,18 +533,14 @@ self.on("guildMemberAdd", member => {
     if (self.mutes.includes(member.id)) {
         member.addRole("269959459349069824","Was previously muted");
         return member.user.send(self.embeds.muted).then(() => {
-            self.channels.get("357870372206673921").send({embed:{title:"New user joined IW4x",fields:[{name:"Username",value:member.user.username},{name:"Received welcome message?",value:"Was previously muted"}],footer:{text:"This is a debug log. It is not related to this server."}}});
             self.channels.get("442888565177712640").send({embed:{title:"User joined",fields:[{name:"Status",value:"Muted\nMessage Received"},{name:"Tag",value:member.user.tag},{name:"ID",value:member.id}]}})
         }).catch(e => {
-            self.channels.get("357870372206673921").send({embed:{title:"New user joined IW4x",fields:[{name:"Username",value:member.user.username},{name:"Received welcome message?",value:"Was previously muted"}],footer:{text:"This is a debug log. It is not related to this server."}}});
             self.channels.get("442888565177712640").send({embed:{title:"User joined",fields:[{name:"Status",value:"Muted\nMessage Not Received"},{name:"Tag",value:member.user.tag},{name:"ID",value:member.id}]}})
         });
     } else {
         return member.user.send(self.embeds.welcome).then(() => {
-            self.channels.get("357870372206673921").send({embed:{title:"New user joined IW4x",fields:[{name:"Username",value:member.user.username},{name:"Received welcome message?",value:"Yes"}],footer:{text:"This is a debug log. It is not related to this server."}}});
             self.channels.get("442888565177712640").send({embed:{title:"User joined",fields:[{name:"Status",value:"Not Muted\nMessage Received"},{name:"Tag",value:member.user.tag},{name:"ID",value:member.id}]}})
         }).catch(e => {
-            self.channels.get("357870372206673921").send({embed:{title:"New user joined IW4x",fields:[{name:"Username",value:member.user.username},{name:"Received welcome message?",value:`No\n${e}`}]}});
             self.channels.get("442888565177712640").send({embed:{title:"User joined",fields:[{name:"Status",value:"Not Muted\nMessage Not Received"},{name:"Tag",value:member.user.tag},{name:"ID",value:member.id}]}})
         });
     }
@@ -421,7 +559,7 @@ self.on("guildMemberUpdate",(oM,nM) => {
 process.on("uncaughtException", err => {
 	console.error(err.stack);
     self.channels.get("419968973287981061").send(`<@211227683466641408> Crashed: ${err}\n at ${new Date().toString()}\nCheck console for more info.`);
-    console.error(err);
+    process.exit();
 });
 
 function parseUptime(uptime) {
