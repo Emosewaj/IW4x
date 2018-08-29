@@ -516,7 +516,52 @@ self.on("message", m => {
                     });
                 }
                 let memes = fs.readdirSync("./data/iw4x_memes");
-                return m.channel.send("Here's your meme fam", {files: ["./data/iw4x_memes/"+memes[Math.floor(Math.random()*(memes.length+1))]]});
+                let memesButNoFileExtensions = [];
+                for (let i = 0; i < memes.length; i++) {
+                    memesButNoFileExtensions[i] = memes[i].split(".")[0];
+                }
+                let args = m.content.slice(2);
+
+
+
+                switch (args[0]) {
+                    case "random": {
+                        return m.channel.send("Here's your meme fam", {files: ["./data/iw4x_memes/"+memes[Math.floor(Math.random()*(memes.length+1))]]});
+                    }
+                    case undefined:
+                    case null: {
+                        let amountPerList = Math.ceil(memes.length / 3);
+                        let lists = ["", "", ""];
+                        
+
+                        for (let i = 0; i < 3; i++) {
+                            for (let j = 0; j < amountPerList; j++) {
+                                if (!memes[j]) break;
+                                lists[i] += "\n" + memes[j];
+                            }
+                            memes = memes.slice(amountPerList);
+                        }
+
+                        let embed = new Discord.RichEmbed().setTitle("File Browser")
+                        .setDescription("Use `@IW4x Bot#3006 meme <filename>` to open a file.\nUse `@IW4x Bot#3006 meme random` to get a random meme.")
+                        .addField("Files", lists[0], true)
+                        .addField("\u200B", lists[1], true)
+                        .addField("\u200B", lists[2], true)
+                        .setTimestamp();
+
+                        return m.channel.send(embed);
+                    }
+                    default: {
+                        if (!memes.includes(args[0]) && !memesButNoFileExtensions.includes(args[0])) {
+                            return m.channel.send("Don't have that meme fam :frowning:");
+                        }
+
+                        if (memesButNoFileExtensions.includes(args[0])) {
+                            args[0] = memes[memesButNoFileExtensions.indexOf(args[0])];
+                        }
+                        return m.channel.send("Here's your meme fam", {files: ["./data/iw4x_memes/"+args[0]]});
+                    }
+                }
             }
         }
     }
