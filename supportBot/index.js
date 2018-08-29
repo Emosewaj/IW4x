@@ -506,7 +506,17 @@ self.on("message", m => {
                         .setTimestamp();
                         return msg.edit("Done!", {embed});
                     });
-                })
+                });
+                break;
+            }
+            case "meme": {
+                if (m.channel.id != "260768564489748480" && m.channel.id != "419968973287981061") {
+                    return m.channel.send("Can't do that here fam, try in <#260768564489748480>.").then(msg => {
+                        msg.delete(7500);
+                    });
+                }
+                let memes = fs.readdirSync("./data/iw4x_memes");
+                return m.channel.send("Here's your meme fam", {files: ["./data/iw4x_memes/"+memes[Math.floor(Math.random()*(memes.length+1))]]});
             }
         }
     }
