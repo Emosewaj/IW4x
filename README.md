@@ -21,7 +21,7 @@ Improved with feedback from the IW4x community.
 
 ***
 
-IW4x GUI and Batch installer  
+IW4x GUI and Legacy Installers  
 Written by Emosewaj, improved with bug reports from the community.  
-GUI uses .NET 4.6.1, written in C#  
-Batch installer uses 7zip and wget.
+GUI Installer uses .NET 4.6.1, written in C#  
+Legacy Installer uses 7zip and wget.
