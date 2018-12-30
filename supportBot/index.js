@@ -74,7 +74,7 @@ function init() {
     for (let i in servers) {
         self.servers.set(`${servers[i].ip}:${servers[i].port}`, new Server(servers[i]));
     }
-    self.memes = ["IW4x Support","Type your problem into #support!","IW4x v0.5.4","Call of Duty: Modern Warfare 2","Spacewar","Not a neural network!","Updated frequently!","Tech Support","Indian Tech Support",":flag_au:","+set net_port <28960>","help cant create iw4play account 😦", "fatal error","👀","/dev/console","BotWarfare","24/7 Terminal","zombie warfare 2 by santahunter","iMeme","#nsfw-meme-philosophy is my favourite channel","Rocket V2 was better","🚀🇻2","Running on german engineering!","Plutekno5xplayv2delta1revolution","with 300 ungrateful indian pirates","MW2:R","closed source ☹️","Advanced BotWarfare"];
+    self.memes = ["IW4x Support","Type your problem into #support!","IW4x v0.6.0","Call of Duty: Modern Warfare 2","Spacewar","Not a neural network!","Updated frequently!","Tech Support","Indian Tech Support",":flag_au:","+set net_port <28960>","help cant create iw4play account 😦", "fatal error","👀","/dev/console","BotWarfare","24/7 Terminal","zombie warfare 2 by santahunter","iMeme","#nsfw-meme-philosophy-cats is my favourite channel","Rocket V2 was better","🚀🇻2","Running on german engineering!","Plutekno5xplayv2delta1revolution","with 300 ungrateful indian pirates","MW2:R","closed source ☹️","Advanced BotWarfare"];
     self.login(self.config.token);
 }
 
@@ -82,7 +82,7 @@ self.on("ready", () => {
     self.customActivity = false;
     randomPresence();
     if (self.mutes.length == 0) fetchMutes();
-    self.channels.get("419968973287981061").send({embed: new Discord.RichEmbed().setTitle(`IW4x Bot`).addField("Status",self.user.presence.status,true).addField("Version","v0.5.4",true).addField("Guilds",self.guilds.size,true).addField("RAM Usage",`${(process.memoryUsage().heapUsed/1024/1024).toFixed(2)} MB`,true).setColor(self.guilds.get("292040520648228864").me.displayHexColor).setThumbnail(self.user.displayAvatarURL)});   
+    self.channels.get("419968973287981061").send({embed: new Discord.RichEmbed().setTitle(`IW4x Bot`).addField("Status",self.user.presence.status,true).addField("Version","v0.6.0",true).addField("Guilds",self.guilds.size,true).addField("RAM Usage",`${(process.memoryUsage().heapUsed/1024/1024).toFixed(2)} MB`,true).setColor(self.guilds.get("292040520648228864").me.displayHexColor).setThumbnail(self.user.displayAvatarURL)});   
 });
 
 self.on("message", m => {
@@ -138,12 +138,11 @@ self.on("message", m => {
     m.content = originalMessage.split(" ");
     if (m.channel.type == "text" && self.config.allowedChannels.includes(m.channel.id) && !m.content[0].startsWith("!") && m.content[0] != "<@394079419964063744>") {
         if (m.content.includes("vac")) return m.channel.send({embed:self.embeds.vac})
+        if (parseKeywords(m.content,["download","get","free","install"]) && parseKeywords(m.content,["iw4x","iw4"])) return m.channel.send({embed:self.embeds.iw4x});
         if (parseKeywords(m.content,["download","get","free"]) && parseKeywords(m.content,["dlc","dlcs"])) return m.channel.send({embed:self.embeds.dlc});
         if (parseKeywords(m.content,["download","get","free","install"]) && (parseKeywords(m.content,["mw2","modern warfare","modern warfare 2"]))) return m.channel.send({embed:self.embeds.game});
-        if (parseKeywords(m.content,["download","get","free","install"]) && parseKeywords(m.content,["iw4x","iw4"])) return m.channel.send({embed:self.embeds.iw4x});
         if ((parseKeywords(m.content,["no","all","find","any","few","low"]) && parseKeywords(m.content,["server","servers"])) || (count != NaN && count < self.config.minServers)) return m.channel.send({embed:self.embeds.servers});
         if (m.content.includes("fatal") && m.content.includes("error")) return m.channel.send({embed:self.embeds.fatal});
-        if (parseKeywords(m.content,["friend","friends"])) return m.channel.send({embed:self.embeds.friends});
         if (m.content.includes("help") && !parseKeywords(m.content,["thank","thanks","thx"])) return m.channel.send("Please state your problem! If I cannot help, someone who can will come and reply to you shortly!");
     }
 
@@ -588,9 +587,9 @@ self.on("guildMemberAdd", member => {
     if (self.mutes.includes(member.id)) {
         member.addRole("269959459349069824","Was previously muted");
         return member.user.send(self.embeds.muted).then(() => {
-            self.channels.get("442888565177712640").send({embed:{title:"User joined",fields:[{name:"Status",value:"Muted\nMessage Received"},{name:"Tag",value:member.user.tag},{name:"ID",value:member.id}]}})
+            self.channels.get("442888565177712640").send({embed:{title:"User joined",fields:[{name:"Status",value:"Previously Muted\nMessage Received"},{name:"Tag",value:member.user.tag},{name:"ID",value:member.id}]}})
         }).catch(e => {
-            self.channels.get("442888565177712640").send({embed:{title:"User joined",fields:[{name:"Status",value:"Muted\nMessage Not Received"},{name:"Tag",value:member.user.tag},{name:"ID",value:member.id}]}})
+            self.channels.get("442888565177712640").send({embed:{title:"User joined",fields:[{name:"Status",value:"Previously Muted\nMessage Not Received"},{name:"Tag",value:member.user.tag},{name:"ID",value:member.id}]}})
         });
     } else {
         return member.user.send(self.embeds.welcome).then(() => {
