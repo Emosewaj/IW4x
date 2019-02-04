@@ -1,4 +1,4 @@
-const wr = require("web-request"), fs = require("fs"), Server = require("./module/server.js"), /*sql = require("sqlite3"),*/ Discord = require("discord.js");
+const wr = require("web-request"), fs = require("fs"), Discord = require("discord.js");
 const self = new Discord.Client({
     messageCacheMaxSize: 5,
     messageCacheLifetime: 30,
@@ -24,6 +24,14 @@ const self = new Discord.Client({
     ]
 });
 
+self.servers = 0;
+self.players = 0;
+self.bots = 0;
+self.presenceIndex = 0;
+self.ipList = ["51.38.98.28:28962"];
+self.current = 0;
+self.activeThreads = 0;
+
 function resetActivity() {
     setTimeout(function() {
         self.customActivity = false;
@@ -33,33 +41,113 @@ function resetActivity() {
 
 function randomPresence() {
     if (self.customActivity) return;
-    let num = Math.floor(Math.random()*(self.memes.length+1));
-    self.user.setActivity(self.memes[num]);
-    setTimeout(function() {randomPresence()},1800000);
+    self.presenceIndex = Math.floor(Math.random()*(self.memes.length));
+    let toPresence = self.memes[self.presenceIndex];
+    toPresence = toPresence.replace("$PLAYERS", self.players);
+    toPresence = toPresence.replace("$SERVERS", self.servers);
+    toPresence = toPresence.replace("$BOTS", self.bots);
+    self.user.setActivity(toPresence);
+    setTimeout(function() {randomPresence()}, 600000);
 }
 
-function addServer(ip) {
-    let port = ip.split(":")[1];
-    ip = ip.split(":")[0];
-    if (self.servers.has(ip)) return;
-    self.servers.set(`${ip}:${port}`,new Server({ip, port}));
-    saveServers();
+function serverUpdateTimer(firstLaunch) {
+    self.servers = 0;
+    self.players = 0;
+    self.bots = 0;
+    self.presenceIndex = 0;
+    self.ipList = ["51.38.98.28:28962"];
+    self.current = 0;
+    self.activeThreads = 0;
+    updatePlayersAndServers();
+    sleep(15000);
+    if (!firstLaunch)
+    {
+        let toPresence = self.memes[self.presenceIndex];
+        toPresence = toPresence.replace("$PLAYERS", self.players);
+        toPresence = toPresence.replace("$SERVERS", self.servers);
+        toPresence = toPresence.replace("$BOTS", self.bots);
+        self.user.setActivity(toPresence);
+    }
+    setTimeout(function() {serverUpdateTimer(false)}, 150000);
 }
 
-function deleteServer(ip) {
-    self.servers.delete(ip);
-    saveServers();
+function updatePlayersAndServers() 
+{
+    while (self.current != self.ipList.length && self.activeThreads < 32)
+    {
+        self.activeThreads++;
+        getServerInfo(self.ipList[self.current]);
+        self.current++;
+    }
 }
 
-function saveServers() {
-    let dataServers = [];
-    self.servers.forEach(server => dataServers.push(server));
-    fs.writeFile("./data/servers.json",JSON.stringify(dataServers,"",1),"utf8",(cb,err) => {if (err) {throw err}});
+async function getServerInfo(URi) 
+{
+    return new Promise((resolve, reject) => {
+        wr.get("http://" + URi + "/serverlist", {timeout: 1500}).then(function(response) 
+        {
+            self.activeThreads--;
+
+            if (response.statusCode != 200) {
+                updatePlayersAndServers();
+                resolve();
+                return;
+            }
+
+            var json = response.content;
+            var serverList = JSON.parse(json);
+            for (let i = 0; i < serverList.length; i++) 
+            {
+                if (!self.ipList.includes(serverList[i])) 
+                {
+                    self.ipList.push(serverList[i]);
+                }
+            }
+            self.servers++;
+
+            self.activeThreads++;
+            wr.get("http://" + URi + "/info", {timeout: 1500}).then(function(response2)
+            {
+                self.activeThreads--;
+
+                if (response2.statusCode != 200) {
+                    self.servers--;
+                    updatePlayersAndServers();
+                    resolve();
+                    return;
+                }
+
+                json = response2.content;
+                var server = JSON.parse(json);
+                for (let i = 0; i < server.players.length; i++)
+                {
+                    if (server.players[i].ping != 999) self.players++;
+                    else self.bots++;
+                }
+
+                updatePlayersAndServers();
+                resolve();
+                return;
+            }, err => {
+                self.activeThreads--;
+                self.servers--;
+                updatePlayersAndServers();
+                resolve();
+                return;
+            });
+
+        }, err => {
+            self.activeThreads--;
+            updatePlayersAndServers();
+            resolve();
+            return;
+        });
+    });
 }
 
 function parseKeywords(text,keywords) {
     for (let i in keywords) {
-        if (text.includes(keywords[i])) return true;
+        if (text.toLowerCase().includes(keywords[i].toLowerCase())) return true;
     }
     return false;
 }
@@ -69,17 +157,16 @@ function init() {
     self.mutes = require("./data/mutes.json");
     self.embeds = require("./data/embeds.json");
     self.joins = require("./data/joins.json");self.days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];self.today = new Date().getUTCDay();
-    self.servers = new Discord.Collection();
-    let servers = require("./data/servers.json");
-    for (let i in servers) {
-        self.servers.set(`${servers[i].ip}:${servers[i].port}`, new Server(servers[i]));
-    }
-    self.memes = ["IW4x Support","Type your problem into #support!","IW4x v0.6.0","Call of Duty: Modern Warfare 2","Spacewar","Not a neural network!","Updated frequently!","Tech Support","Indian Tech Support",":flag_au:","+set net_port <28960>","help cant create iw4play account 😦", "fatal error","👀","/dev/console","BotWarfare","24/7 Terminal","zombie warfare 2 by santahunter","iMeme","#nsfw-meme-philosophy-cats is my favourite channel","Rocket V2 was better","🚀🇻2","Running on german engineering!","Plutekno5xplayv2delta1revolution","with 300 ungrateful indian pirates","MW2:R","closed source ☹️","Advanced BotWarfare"];
+    //self.memes = ["IW4x Support","Type your problem into #support!","IW4x v0.6.0","Call of Duty: Modern Warfare 2","Spacewar","Not a neural network!","Updated frequently!","Tech Support","Indian Tech Support",":flag_au:","+set net_port <28960>","help cant create iw4play account 😦", "fatal error","👀","/dev/console","BotWarfare","24/7 Terminal","zombie warfare 2 by santahunter","iMeme","#nsfw-meme-philosophy-cats is my favourite channel","Rocket V2 was better","🚀🇻2","Running on german engineering!","Plutekno5xplayv2delta1revolution","with 300 ungrateful indian pirates","MW2:R","closed source ☹️","Advanced BotWarfare"];
+    self.memes = ["with $PLAYERS players and $BOTS bots on $SERVERS servers", "with $PLAYERS ungrateful indian pirates"];
     self.login(self.config.token);
 }
 
-self.on("ready", () => {
+self.on("ready", async () => {
     self.customActivity = false;
+    self.user.setActivity("Starting up");
+    serverUpdateTimer(true);
+    await sleep(15000);
     randomPresence();
     if (self.mutes.length == 0) fetchMutes();
     self.channels.get("419968973287981061").send({embed: new Discord.RichEmbed().setTitle(`IW4x Bot`).addField("Status",self.user.presence.status,true).addField("Version","v0.6.0",true).addField("Guilds",self.guilds.size,true).addField("RAM Usage",`${(process.memoryUsage().heapUsed/1024/1024).toFixed(2)} MB`,true).setColor(self.guilds.get("292040520648228864").me.displayHexColor).setThumbnail(self.user.displayAvatarURL)});   
@@ -101,6 +188,7 @@ self.on("message", m => {
 
     if (m.mentions.members.size > 5) m.member.kick("Mention spammer").then(member => m.channel.send(`Don't spam you cuck, kicked. Bye bye ${member.user.username}!`));
 
+    // request
     if (m.content.startsWith("!")) {
         if (m.content.startsWith("!request")) {
             return self.users.get("211227683466641408").send(`Request from ${m.author.tag}: ${m.content.split(" ").slice(1).join(" ")}`).then(() => {
@@ -109,6 +197,7 @@ self.on("message", m => {
         }
     }
 
+    // kick, ban, unban, presence
     if (m.content.startsWith("!") && (m.author.id == "211227683466641408" || m.member.roles.has("389196122645856266") || m.member.roles.has("277148294705053696") || m.member.roles.has("276772587629969408") || m.member.roles.has("265852393743319042") || m.member.roles.has("244553794380234752"))) {
         if (m.content.startsWith("!kick")) {
             if (m.mentions.members.first()) {
@@ -135,6 +224,7 @@ self.on("message", m => {
         }
     }
 
+    // auto-replies
     m.content = originalMessage.split(" ");
     if (m.channel.type == "text" && self.config.allowedChannels.includes(m.channel.id) && !m.content[0].startsWith("!") && m.content[0] != "<@394079419964063744>") {
         if (m.content.includes("vac")) return m.channel.send({embed:self.embeds.vac})
@@ -146,6 +236,7 @@ self.on("message", m => {
         if (m.content.includes("help") && !parseKeywords(m.content,["thank","thanks","thx"])) return m.channel.send("Please state your problem! If I cannot help, someone who can will come and reply to you shortly!");
     }
 
+    // info, test, restart, joins, ping, google, iw4madmin, meme
     if (m.content[0] == "<@394079419964063744>" && !m.content[0].startsWith("!")) {
         switch(m.content[1]) {
             case "info": return m.channel.send({embed: {fields: [{name:"Uptime",value:parseUptime(process.uptime())},{name:"Memory Usage",value:parseUsage(process.memoryUsage().heapUsed)}]}});
@@ -206,165 +297,12 @@ self.on("message", m => {
                         .addField("KillCam:",toBool(server.scr_game_allowkillcam),true)
                         .addField("Friendly Fire:",getFFType(server.scr_team_fftype),true)
                         .addField("\u200B",`[Click here to join!](http://${ip})`);
-                        msg.edit({embed});
-                        return addServer(ip);
+                        return msg.edit({embed});
                     }).catch(err => {
                         return msg.edit(`There was an error trying to connect to ${ip}!\n${err}`);
                     });
                 });
                 return;
-            }
-            case "find": {
-                let searchQuery = m.content;
-                searchQuery.shift();searchQuery.shift();
-                searchQuery = searchQuery.join(" ");
-                function findServer(query) {
-                    let result = self.servers.find(server => {if (server.name.toLowerCase().includes(query.toLowerCase())) {return true} else {return false}});
-                    if (!result) {
-                        m.channel.send(`No servers found with the name ${query}!`);
-                    } else {
-                        wr.get(`http://${result.ip}:${result.port}/info`,{timeout:3000}).then(response => {
-                            if (response.statusCode != 200) {
-                                msg.edit(`There was an error trying to connect to ${result.ip}!\nCode: ${response.statusCode}\nMessage: ${response.statusMessage}`);
-                                return;
-                            }
-                            let server = JSON.parse(response.content).status,players = JSON.parse(response.content).players;
-                            if (!server.fs_game) server.fs_game = "None";
-                            let embed = new Discord.RichEmbed()
-                            .setAuthor(server.sv_hostname.replace(/\^[0-9:;c]/g, ""))
-                            .setDescription("**Serverinfo**")
-                            .addField("Map:",server.mapname,true)
-                            .addField("Gametype:",server.g_gametype,true)
-                            .addField("Players:",`${players.length}/${server.sv_maxclients}`,true)
-                            .addField("Mod:",server.fs_game.replace(/^mods\//g, ""),true)
-                            .addField("Security Level:",server.sv_securityLevel,true)
-                            .addField("Password Protected:",toBool(server.isPrivate),true)
-                            .addField("Hardcore Mode:",toBool(server.g_hardcore),true)
-                            .addField("KillCam:",toBool(server.scr_game_allowkillcam),true)
-                            .addField("Friendly Fire:",getFFType(server.scr_team_fftype),true)
-                            .addField("\u200B",`[Click here to join!](http://${result.ip}:${result.port})`);
-                            m.channel.send("Found a server!",{embed});
-                        }).catch(err => {
-                            m.channel.send(`A server was found but seems to be offline! Removing it from the server list!`);
-                            deleteServer(`${result.ip}:${result.port}`);
-                            findServer(query);
-                        });
-                    }
-                }
-                findServer(searchQuery);
-                return;
-            }
-            case "check": {
-                let servers = [];
-                self.servers.forEach(server => {
-                    servers.push(`${server.ip}:${server.port}`);
-                });
-                m.channel.send(`Checking ${servers.length} servers...`).then(msg => {
-                    let online = 0, offline = 0, amount = servers.length, checked = 0;
-                    function checkServer(ip) {
-                        checked++;
-                        wr.get(`http://${ip}/info`,{timeout:3000}).then(response => {
-                            if (response.statusCode != 200) {
-                                offline++;
-                                deleteServer(ip);
-                                if (servers.length == 0) {
-                                    msg.edit(`All servers checked! Results:\n${online} servers online\n${offline} servers offline and deleted`);
-                                    return;
-                                } else {
-                                    let bar = loadingBar(amount,checked);
-                                    if (bar.bool) {
-                                        msg.edit(`Checking ${amount} servers...\nProgress: ${bar.percentage}% ${bar.bar}`);
-                                    }
-                                    checkServer(servers.shift());
-                                    return;
-                                }
-                            } else {
-                                online++;
-                                if (servers.length == 0) {
-                                    msg.edit(`All servers checked! Results:\n${online} servers online\n${offline} servers offline and deleted`);
-                                    return;
-                                } else {
-                                    let bar = loadingBar(amount,checked);
-                                    if (bar.bool) {
-                                        msg.edit(`Checking ${amount} servers...\nProgress: ${bar.percentage}% ${bar.bar}`);
-                                    }
-                                    checkServer(servers.shift());
-                                    return;
-                                }
-                            }
-                        }).catch(err => {
-                            offline++;
-                            deleteServer(ip);
-                            if (servers.length == 0) {
-                                msg.edit(`All servers checked! Results:\n${online} servers online\n${offline} servers offline and deleted`);
-                                return;
-                            } else {
-                                let bar = loadingBar(amount,checked);
-                                if (bar.bool) {
-                                    msg.edit(`Checking ${amount} servers...\nProgress: ${bar.percentage}% ${bar.bar}`);
-                                }
-                                checkServer(servers.shift());
-                                return;
-                            }
-                        });
-                    }
-                    checkServer(servers.shift());
-                });
-                break;
-            }
-            case "parse": {
-                let servers = require("./data/favourites.json");
-                m.channel.send(`Checking ${servers.length} servers...`).then(msg => {
-                    let online = 0, offline = 0, amount = servers.length, checked = 0;
-                    function parseFavourites(ip) {
-                        checked++;
-                        wr.get(`http://${ip}/info`,{timeout:3000}).then(response => {
-                            if (response.statusCode != 200) {
-                                offline++;
-                                if (servers.length == 0) {
-                                    msg.edit(`All servers checked! Results:\n${online} servers online\n${offline} servers offline.`);
-                                    return;
-                                } else {
-                                    let bar = loadingBar(amount,checked);
-                                    if (bar.bool) {
-                                        msg.edit(`Checking ${amount} servers...\nProgress: ${bar.percentage}% ${bar.bar}`);
-                                    }
-                                    parseFavourites(servers.shift());
-                                    return;
-                                }
-                            } else {
-                                online++;
-                                addServer(ip);
-                                if (servers.length == 0) {
-                                    msg.edit(`All servers checked! Results:\n${online} servers online\n${offline} servers offline and deleted`);
-                                    return;
-                                } else {
-                                    let bar = loadingBar(amount,checked);
-                                    if (bar.bool) {
-                                        msg.edit(`Checking ${amount} servers...\nProgress: ${bar.percentage}% ${bar.bar}`);
-                                    }
-                                    parseFavourites(servers.shift());
-                                    return;
-                                }
-                            }
-                        }).catch(err => {
-                            offline++;
-                            if (servers.length == 0) {
-                                msg.edit(`All servers checked! Results:\n${online} servers online\n${offline} servers offline and deleted`);
-                                return;
-                            } else {
-                                let bar = loadingBar(amount,checked);
-                                if (bar.bool) {
-                                    msg.edit(`Checking ${amount} servers...\nProgress: ${bar.percentage}% ${bar.bar}`);
-                                }
-                                parseFavourites(servers.shift());
-                                return;
-                            }
-                        });
-                    }
-                    parseFavourites(servers.shift());
-                });
-                break;
             }
             case "lmgtfy":
             case "google": {
@@ -375,7 +313,6 @@ self.on("message", m => {
                     .setThumbnail("http://lmgtfy.com/assets/logo-color-small-70dbef413f591a3fdfcfac7b273791039c8fd2a5329e97c4bfd8188f69f0da34.png")
                     .setColor("WHITE")
                 });
-                break;
             }
             case "iw4madmin": {
                 m.channel.send("Attempting to fetch data...").then(msg => {
@@ -659,6 +596,12 @@ function fetchMutes() {
         if (m.roles.has("269959459349069824")) return self.mutes.push(m.id);
     });
     setTimeout(() => {fs.writeFileSync("./data/mutes.json",JSON.stringify(self.mutes,"",1),"utf8");},10000);
+}
+
+function sleep(ms){
+    return new Promise(resolve=>{
+        setTimeout(resolve,ms)
+    });
 }
 
 init();
