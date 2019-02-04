@@ -50,16 +50,15 @@ function randomPresence() {
     setTimeout(function() {randomPresence()}, 600000);
 }
 
-function serverUpdateTimer(firstLaunch) {
+async function serverUpdateTimer(firstLaunch) {
     self.servers = 0;
     self.players = 0;
     self.bots = 0;
-    self.presenceIndex = 0;
     self.ipList = ["51.38.98.28:28962"];
     self.current = 0;
     self.activeThreads = 0;
     updatePlayersAndServers();
-    sleep(15000);
+    await sleep(15000);
     if (!firstLaunch)
     {
         let toPresence = self.memes[self.presenceIndex];
@@ -322,7 +321,6 @@ self.on("message", m => {
                         }
                         msg.edit("Parsing data...");
                         let data = JSON.parse(response.content);
-                        console.log(data);
                         let versions = new Discord.Collection();
                         data.forEach(instance => {
                             if (versions.has(instance.version.toString())) {
