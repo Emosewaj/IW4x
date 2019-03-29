@@ -1,4 +1,4 @@
-const wr = require("web-request"), fs = require("fs"), Discord = require("discord.js");
+const wr = require("web-request"), fs = require("fs"), Discord = require("discord.js"), { exec } = require("child_process");
 const self = new Discord.Client({
     messageCacheMaxSize: 5,
     messageCacheLifetime: 30,
@@ -24,11 +24,19 @@ const self = new Discord.Client({
     ]
 });
 
+const startGroundServerCMD = "nohup wine ../../iw4xServer/iw4x.exe -dedicated +set net_port 28960 +exec server_match.cfg +party_enable 0 +sv_maxclients 18 +map_rotate &";
+const startPartyServerCMD = "nohup wine ../../iw4xServer/iw4x.exe -dedicated +set net_port 28962 +exec server_match_party.cfg +party_enable 0 +sv_maxclients 18 +map_rotate &";
+var consecutiveLocalRestarts = 
+{
+    Groundwar: 0,
+    Party: 0
+};
+
 self.servers = 0;
 self.players = 0;
 self.bots = 0;
 self.presenceIndex = 0;
-self.ipList = ["51.38.98.28:28962"];
+self.ipList = ["51.38.98.28:28960", "51.38.98.28:28962"];
 self.current = 0;
 self.activeThreads = 0;
 
@@ -54,7 +62,7 @@ async function serverUpdateTimer(firstLaunch) {
     self.servers = 0;
     self.players = 0;
     self.bots = 0;
-    self.ipList = ["51.38.98.28:28962"];
+    self.ipList = ["51.38.98.28:28960", "51.38.98.28:28962"];
     self.current = 0;
     self.activeThreads = 0;
     updatePlayersAndServers();
@@ -62,9 +70,14 @@ async function serverUpdateTimer(firstLaunch) {
     if (!firstLaunch)
     {
         let toPresence = self.memes[self.presenceIndex];
-        toPresence = toPresence.replace("$PLAYERS", self.players);
-        toPresence = toPresence.replace("$SERVERS", self.servers);
-        toPresence = toPresence.replace("$BOTS", self.bots);
+        while(toPresence.includes("$PLAYERS") ||
+              toPresence.includes("$SERVERS") ||
+              toPresence.includes("$BOTS"))
+        {
+            toPresence = toPresence.replace("$PLAYERS", self.players);
+            toPresence = toPresence.replace("$SERVERS", self.servers);
+            toPresence = toPresence.replace("$BOTS", self.bots);
+        }
         self.user.setActivity(toPresence);
     }
     setTimeout(function() {serverUpdateTimer(false)}, 150000);
@@ -88,10 +101,20 @@ async function getServerInfo(URi)
             self.activeThreads--;
 
             if (response.statusCode != 200) {
+
+                if(URi == "51.38.98.28:28960" || URi == "51.38.98.28:28962")
+                {
+                    restartLocalServer(URi);
+                }
+
                 updatePlayersAndServers();
                 resolve();
                 return;
             }
+            else if(URi == "51.38.98.28:28960")
+                consecutiveLocalRestarts.Groundwar = 0;
+            else if(URi == "51.38.98.28:28962")
+                consecutiveLocalRestarts.Party = 0;
 
             var json = response.content;
             var serverList = JSON.parse(json);
@@ -137,6 +160,10 @@ async function getServerInfo(URi)
 
         }, err => {
             self.activeThreads--;
+            if(URi == "51.38.98.28:28960" || URi == "51.38.98.28:28962")
+            {
+                restartLocalServer(URi);
+            }
             updatePlayersAndServers();
             resolve();
             return;
@@ -144,9 +171,46 @@ async function getServerInfo(URi)
     });
 }
 
+function restartLocalServer(URi)
+{
+    switch(URi)
+    {
+        case "51.38.98.28:28960":
+            if(consecutiveLocalRestarts.Groundwar >= 4)
+                return killServers();
+            consecutiveLocalRestarts.Groundwar++;
+            self.channels.get("419968973287981061").send({ embed: { description:"Restarting Groundwar Server..." }});
+            exec(startGroundServerCMD);
+            break;
+        case "51.38.98.28:28962":
+            if(consecutiveLocalRestarts.Party >= 4)
+                return killServers();
+            consecutiveLocalRestarts.Party++;
+            self.channels.get("419968973287981061").send({ embed: { description:"Restarting Party Server..." }});
+            exec(startPartyServerCMD);
+            break;
+        default: return;
+    }
+}
+
+function killServers()
+{
+    self.channels.get("419968973287981061").send({ embed: { description:"Failsafe: Killing servers..." }});
+    exec("pkill iw4x");
+    exec("pkill iw4x.exe");
+    consecutiveLocalRestarts.Groundwar = 0;
+    consecutiveLocalRestarts.Party = 0;
+    setTimeout(() => {
+        restartLocalServer("51.38.98.28:28960");
+        restartLocalServer("51.38.98.28:28962");
+    }
+    , 2000);
+}
+
 function parseKeywords(text,keywords) {
+    if(!text) return false;
     for (let i in keywords) {
-        if (text.toLowerCase().includes(keywords[i].toLowerCase())) return true;
+        if (text.toLowerCase().includes(keywords[i])) return true;
     }
     return false;
 }
@@ -157,7 +221,7 @@ function init() {
     self.embeds = require("./data/embeds.json");
     self.joins = require("./data/joins.json");self.days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];self.today = new Date().getUTCDay();
     //self.memes = ["IW4x Support","Type your problem into #support!","IW4x v0.6.0","Call of Duty: Modern Warfare 2","Spacewar","Not a neural network!","Updated frequently!","Tech Support","Indian Tech Support",":flag_au:","+set net_port <28960>","help cant create iw4play account 😦", "fatal error","👀","/dev/console","BotWarfare","24/7 Terminal","zombie warfare 2 by santahunter","iMeme","#nsfw-meme-philosophy-cats is my favourite channel","Rocket V2 was better","🚀🇻2","Running on german engineering!","Plutekno5xplayv2delta1revolution","with 300 ungrateful indian pirates","MW2:R","closed source ☹️","Advanced BotWarfare"];
-    self.memes = ["with $PLAYERS players and $BOTS bots on $SERVERS servers", "with $PLAYERS ungrateful indian pirates"];
+    self.memes = ["with $PLAYERS players and $BOTS bots on $SERVERS servers", "with $PLAYERS ungrateful indian pirates ($PLAYERS players, $BOTS bots, $SERVERS servers)"];
     self.login(self.config.token);
 }
 
@@ -178,6 +242,8 @@ self.on("message", m => {
     let result = originalMessage.match(regexPattern); //Should be a number ,followed by 0-inf whitespaces and "server"
     let count = NaN;
     if (result) count = parseInt(result[0]);
+
+    if(!m.content) m.content = "";
 
     if (m.channel.permissionsFor(self.user).has("MANAGE_MESSAGES")) {
         for (let i in self.config.keywords) {
@@ -223,10 +289,12 @@ self.on("message", m => {
         }
     }
 
-    // auto-replies
     m.content = originalMessage.split(" ");
+    // auto-replies
     if (m.channel.type == "text" && self.config.allowedChannels.includes(m.channel.id) && !m.content[0].startsWith("!") && m.content[0] != "<@394079419964063744>") {
-        if (m.content.includes("vac")) return m.channel.send({embed:self.embeds.vac})
+        m.content = originalMessage;
+        if (m.content.includes("vac")) return m.channel.send({embed:self.embeds.vac});
+        if (m.content.includes("black")) return m.channel.send({embed:self.embeds.blackscreen});
         if (parseKeywords(m.content,["download","get","free","install"]) && parseKeywords(m.content,["iw4x","iw4"])) return m.channel.send({embed:self.embeds.iw4x});
         if (parseKeywords(m.content,["download","get","free"]) && parseKeywords(m.content,["dlc","dlcs"])) return m.channel.send({embed:self.embeds.dlc});
         if (parseKeywords(m.content,["download","get","free","install"]) && (parseKeywords(m.content,["mw2","modern warfare","modern warfare 2"]))) return m.channel.send({embed:self.embeds.game});
@@ -235,6 +303,7 @@ self.on("message", m => {
         if (m.content.includes("help") && !parseKeywords(m.content,["thank","thanks","thx"])) return m.channel.send("Please state your problem! If I cannot help, someone who can will come and reply to you shortly!");
     }
 
+    
     // info, test, restart, joins, ping, google, iw4madmin, meme
     if (m.content[0] == "<@394079419964063744>" && !m.content[0].startsWith("!")) {
         switch(m.content[1]) {
