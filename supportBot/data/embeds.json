@@ -42,6 +42,20 @@
         "thumbnail": {"url":"https://i.imgur.com/rCwPor6.png"},
         "fields": [{"name":"Read the guide:","value":"https://iw4x.tumblr.com/post/166171864664/fatal-error"}]
     },
+    "blackscreen": {
+        "title":"Black screen issue",
+        "description":"If you've been experiencing black screens on starting up IW4x, try one or more of the following methods:",
+        "fields": [
+            {"name":"Method 1:","value":"If you have a Nvidia GPU, disable the overlay (see picture).\nDisable any other overlays as well (Discord, FPS Counters, Recorders, Steam, etc.)"},
+            {"name":"Method 2:","value":"Rightclick iw4x.exe, click Properties, go to the Compatibility tab and enable compatibility mode for Windows 8."},
+            {"name":"Method 3:","value":"Revert your Nvidia GPU driver to 417.35:\nhttps://www.nvidia.co.uk/Download/Find.aspx"},
+            {"name":"Method 4:","value":"If you can launch the game, make sure that in Options -> Videos, Direct3D 9Ex is set to *YES*."},
+            {"name":"Method 5:","value":"Disable DEP, run this batch file as admin:\n[dep_disabler.bat](https://cdn.discordapp.com/attachments/275267435945263104/544154785943650334/dep_disabler.bat)"}
+        ],
+        "thumbnail":{"url":"https://media.discordapp.net/attachments/275267435945263104/542085935349628943/unknown.png?width=720&height=219"}
+    },
+
+
     "commands": {
         "title":"Commands",
         "fields": [
@@ -49,7 +63,8 @@
             {"name":"@IW4x Bot#3006 joins","value":"Show how many members joined within the last week for each day."},
             {"name":"@IW4x Bot#3006 ping <IP[:Port]>","value":"Try pinging the specied IP and Port.\nIf no port is specified, 28960 will be chosen as the default."},
             {"name":"@IW4x Bot#3006 iw4madmin","value":"Fetches and displays statistics about the current IW4MAdmin instances"},
-            {"name":"@IW4x Bot#3006 meme [random|file name]","value":"Meme command lol"}
+            {"name":"@IW4x Bot#3006 meme [random|file name]","value":"Meme command lol"},
+            {"name":"@IW4x Bot#3006 level <number>","value":"Get minimum and maximum experience values for a given level"}
         ]
     },
     "topics": {

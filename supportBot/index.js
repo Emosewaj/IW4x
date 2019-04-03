@@ -197,14 +197,16 @@ function killServers()
 {
     self.channels.get("419968973287981061").send({ embed: { description:"Failsafe: Killing servers..." }});
     exec("pkill iw4x");
-    exec("pkill iw4x.exe");
     consecutiveLocalRestarts.Groundwar = 0;
     consecutiveLocalRestarts.Party = 0;
     setTimeout(() => {
         restartLocalServer("51.38.98.28:28960");
+    }
+    , 5000);
+    setTimeout(() => {
         restartLocalServer("51.38.98.28:28962");
     }
-    , 2000);
+    , 6000);
 }
 
 function parseKeywords(text,keywords) {
@@ -304,7 +306,7 @@ self.on("message", m => {
     }
 
     
-    // info, test, restart, joins, ping, google, iw4madmin, meme
+    // info, test, restart, joins, ping, google, iw4madmin, meme, level
     if (m.content[0] == "<@394079419964063744>" && !m.content[0].startsWith("!")) {
         switch(m.content[1]) {
             case "info": return m.channel.send({embed: {fields: [{name:"Uptime",value:parseUptime(process.uptime())},{name:"Memory Usage",value:parseUsage(process.memoryUsage().heapUsed)}]}});
@@ -566,6 +568,21 @@ self.on("message", m => {
                     }
                 }
             }
+            case "level": {
+                let args = m.content.slice(2);
+                if (!args[0]) return m.reply("give me a level and I'll tell you the experience values.");
+                let level = parseInt(args[0]);
+                if (isNaN(level)) return m.reply("do you fucking know what a number is?");
+
+                let exp = {
+                    min: expForLevelLookup(level),
+                    max: expForLevelLookup(level + 1) - 1
+                }
+
+                if (exp.min == -1 || exp.max == -1) return m.reply("<:angry_joy:429587440903389214>");
+
+                return m.channel.send({embed: {title: "Level " + level, description: `Level information:\`\`\`\nMinimum Exp: ${beautify(exp.min)}\nMaximum Exp: ${beautify(exp.max)}\`\`\``}})
+            }
         }
     }
 
@@ -619,6 +636,40 @@ process.on("uncaughtException", err => {
     self.channels.get("419968973287981061").send(`<@211227683466641408> Crashed: ${err}\n at ${new Date().toString()}\nCheck console for more info.`);
     process.exit();
 });
+
+function expForLevelLookup(level)
+{
+    if (level < 0) return -1;
+
+    var lookupTable = [
+/* 0 */     -1,
+/*1-10*/    0,500,1700,3600,6200,9500,13500,18200,23600,29700,
+/*11-20*/   36500,44300,53100,62900,73700,85500,98300,112100,126900,142700,
+/*21-30*/   159500,177300,196100,215900,236700,258500,281300,305100,329900,355700,
+/*31-40*/   382700,410900,440300,470900,502700,535700,569900,605300,641900,679700,
+/*41-50*/   718700,758900,800300,842900,886700,931700,977900,1025300,1073900,1123700,
+/*51-60*/   1175000,1227800,1282100,1337900,1395200,1454000,1514300,1576100,1639400,1704200,
+/*61-70*/   1770500,1838300,1907600,1978400,2050700,2124500,2199800,2276600,2354900,2434700,
+/*Prestige*/2516001
+    ];
+
+    // Fancy shit, love it
+    return level < lookupTable.length ? lookupTable[level] : -1;
+}
+
+function beautify(number)
+{
+    let digits = number.toString().split("");
+    let ret = "";
+    for(let i = 0; i < digits.length; i++)
+    {
+        if (i != 0 && i % 3 == 0) ret = "," + ret;
+        let toAdd = digits[digits.length - (i + 1)]
+        ret = toAdd + ret;
+    }
+
+    return ret;
+}
 
 function parseUptime(uptime) {
 	let days = 0,hours = 0,minutes = 0,seconds = Math.round(uptime);
