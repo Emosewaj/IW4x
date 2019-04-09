@@ -13,7 +13,6 @@ const self = new Discord.Client({
         "MESSAGE_DELETE",
         "MESSAGE_UPDATE",
         "MESSAGE_DELETE_BULK",
-        "MESSAGE_REACTION_ADD",
         "MESSAGE_REACTION_REMOVE",
         "MESSAGE_REACTION_REMOVE_ALL",
         "VOICE_STATE_UPDATE",
@@ -51,9 +50,16 @@ function randomPresence() {
     if (self.customActivity) return;
     self.presenceIndex = Math.floor(Math.random()*(self.memes.length));
     let toPresence = self.memes[self.presenceIndex];
-    toPresence = toPresence.replace("$PLAYERS", self.players);
-    toPresence = toPresence.replace("$SERVERS", self.servers);
-    toPresence = toPresence.replace("$BOTS", self.bots);
+    while (
+        toPresence.includes("$PLAYERS") ||
+        toPresence.includes("$SERVERS") ||
+        toPresence.includes("$BOTS")
+        )
+    {
+        toPresence = toPresence.replace("$PLAYERS", self.players);
+        toPresence = toPresence.replace("$SERVERS", self.servers);
+        toPresence = toPresence.replace("$BOTS", self.bots);
+    }
     self.user.setActivity(toPresence);
     setTimeout(function() {randomPresence()}, 600000);
 }
@@ -199,14 +205,10 @@ function killServers()
     exec("pkill iw4x");
     consecutiveLocalRestarts.Groundwar = 0;
     consecutiveLocalRestarts.Party = 0;
-    setTimeout(() => {
-        restartLocalServer("51.38.98.28:28960");
-    }
-    , 5000);
-    setTimeout(() => {
-        restartLocalServer("51.38.98.28:28962");
-    }
-    , 6000);
+    sleep(10000);
+    restartLocalServer("51.38.98.28:28960");
+    sleep(5000);
+    restartLocalServer("51.38.98.28:28962");
 }
 
 function parseKeywords(text,keywords) {
@@ -238,7 +240,9 @@ self.on("ready", async () => {
 });
 
 self.on("message", m => {
-    if (m.author == self.user || m.channel.type == "dm") return;
+    if (m.channel.type == "dm") return;
+    if (m.author == self.user) return m.react("❌");
+
     let originalMessage = m.content.toLowerCase();
     let regexPattern = /(\d+)(.*?)(server)/;
     let result = originalMessage.match(regexPattern); //Should be a number ,followed by 0-inf whitespaces and "server"
@@ -629,6 +633,15 @@ self.on("guildMemberUpdate",(oM,nM) => {
         self.mutes.splice(self.mutes.indexOf(nM.id),1);
         return fs.writeFileSync("./data/mutes.json",JSON.stringify(self.mutes,"",1),"utf8");
     } else return;
+});
+
+self.on("messageReactionAdd", (reaction, user) => {
+    if (user == self.user) return;
+    if (reaction.message.author != self.user) return;
+    if (reaction.emoji != "❌") return;
+    //if (!reaction.message.guild.members.find("id", user.id).permissions.has("MANAGE_MESSAGES", true)) return;
+
+    reaction.message.delete();
 });
 
 process.on("uncaughtException", err => {
