@@ -2,7 +2,7 @@
 
 This is the repository of all open-source aspects of the IW4x client.
 
-Please note that the Client itself is **not** open source.
+If you are looking for the IW4x source code itself, that can be found [here](https://github.com/IW4x/iw4x-client).
 
 The [wiki](https://github.com/Jawesome99/IW4x/wiki) is a 1:1 copy of the [onsite wiki](https://iw4xcachep26muba.onion.rip/wiki), with the exception that this one can be edited by the community.  
 Current permission to edit the wiki:
